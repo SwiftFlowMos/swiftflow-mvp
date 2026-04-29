@@ -725,10 +725,9 @@ export default function App() {
   });
 
   return (
-    <div style={{ fontFamily:"'IBM Plex Mono','Courier New',monospace", background:"linear-gradient(140deg,#050d1a 0%,#0a1628 60%,#071220 100%)", minHeight:"100vh", color:"#e2e8f0" }}>
+    <div style={{ fontFamily:"'IBM Plex Mono','Courier New',monospace", color:"#e2e8f0", minHeight:"100vh" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Syne:wght@700;800&display=swap');
-        *{box-sizing:border-box;margin:0;padding:0} input,select,textarea{font-family:inherit} select option{background:#0b1425}
+        input,select,textarea{font-family:inherit} select option{background:#0b1425}
         ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#050d1a}::-webkit-scrollbar-thumb{background:#1e3a5f;border-radius:2px}
         .fade{animation:fade .3s ease forwards} @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
@@ -737,21 +736,15 @@ export default function App() {
 
       {editing && <StepModal step={editing} circuit={circuit} onSave={saveStep} onDelete={delStep} onClose={() => setEditing(null)} />}
 
-      {/* HEADER */}
-      <div style={{ borderBottom:"1px solid rgba(6,182,212,.1)", background:"rgba(6,182,212,.025)", backdropFilter:"blur(12px)", position:"sticky", top:0, zIndex:100 }}>
-        <div style={{ maxWidth:1100, margin:"0 auto", padding:"0 24px", display:"flex", alignItems:"center", justifyContent:"space-between", height:60 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-            <div style={{ width:36, height:36, borderRadius:9, background:"linear-gradient(135deg,#0891b2,#0e7490)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, boxShadow:"0 0 18px rgba(8,145,178,.3)" }}>⚡</div>
-            <div>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:16, color:"#e2e8f0", letterSpacing:1 }}>SWIFT<span style={{ color:"#06b6d4" }}>FLOW</span></div>
-              <div style={{ fontSize:9, color:"#334155", letterSpacing:3, textTransform:"uppercase" }}>Moteur Workflow Conditionnel</div>
-            </div>
-          </div>
-          <div style={{ display:"flex", gap:4, background:"rgba(11,20,37,.8)", border:"1px solid rgba(30,58,138,.3)", borderRadius:10, padding:4 }}>
-            {[["ADMIN","⚙ Éditeur"],["SIMUL","▶ Simulation"]].map(([k,l]) => (
-              <button key={k} onClick={() => setView(k)} style={tabStyle(k)}>{l}</button>
-            ))}
-          </div>
+      {/* BARRE D'OUTILS */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 24px", borderBottom:"1px solid rgba(30,58,138,.2)", background:"rgba(6,182,212,.02)" }}>
+        <div style={{ display:"flex", gap:4, background:"rgba(11,20,37,.8)", border:"1px solid rgba(30,58,138,.3)", borderRadius:10, padding:4 }}>
+          {[["ADMIN","⚙ Éditeur"],["SIMUL","▶ Simulation"]].map(([k,l]) => (
+            <button key={k} onClick={() => setView(k)} style={tabStyle(k)}>{l}</button>
+          ))}
+        </div>
+        <div style={{ display:"flex", gap:8 }}>
+          <button onClick={addStep} style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:9, background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.2)", color:"#06b6d4", fontSize:12, fontWeight:700, cursor:"pointer" }}>+ Ajouter étape</button>
           <button onClick={() => { setSaved(true); setTimeout(() => setSaved(false), 2000); }} style={{
             padding:"8px 18px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer",
             background: saved ? "linear-gradient(135deg,#059669,#047857)" : "linear-gradient(135deg,#0891b2,#0e7490)",
@@ -760,7 +753,7 @@ export default function App() {
         </div>
       </div>
 
-      <div style={{ maxWidth:1100, margin:"0 auto", padding:"28px 24px" }}>
+      <div style={{ maxWidth:1100, margin:"0 auto", padding:"24px 24px" }}>
 
         {/* ── VUE ADMIN ── */}
         {view === "ADMIN" && (
@@ -784,9 +777,8 @@ export default function App() {
               </div>
             </div>
 
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-              <p style={{ fontSize:12, color:"#475569" }}>Glissez pour réordonner · Cliquez sur une étape pour la configurer</p>
-              <button onClick={addStep} style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:9, background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.2)", color:"#06b6d4", fontSize:12, fontWeight:700, cursor:"pointer" }}>+ Ajouter étape</button>
+            <div style={{ marginBottom:14 }}>
+              <p style={{ fontSize:12, color:"#475569" }}>Glissez pour réordonner · Cliquez sur une étape pour la configurer · Bouton + en haut à droite pour ajouter</p>
             </div>
 
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>

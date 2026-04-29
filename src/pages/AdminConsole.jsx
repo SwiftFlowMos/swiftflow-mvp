@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import VisibiliteModule from "./VisibiliteModule.jsx";
 
 // ─────────────────────────────────────────────────────────
 // DONNÉES INITIALES
@@ -143,6 +144,7 @@ const MENUS = [
   { id:"referentiels",label:"Referentiels",            icon:"📋", color:"#10B981" },
   { id:"workflow",    label:"Moteur Workflow",          icon:"🔀", color:"#8B5CF6" },
   { id:"parametrage", label:"Parametrage general",     icon:"⚙",  color:"#F59E0B" },
+  { id:"champs",      label:"Parametrage des champs",  icon:"👁",  color:"#EC4899" },
 ];
 
 const REF_TILES = [
@@ -891,6 +893,7 @@ export default function AdminConsole({ onExit }) {
           {activeMenu==="referentiels"&& <Referentiels refs={refs} setRefs={setRefs} />}
           {activeMenu==="workflow"    && <MoteurWorkflow steps={steps} setSteps={setSteps} />}
           {activeMenu==="parametrage" && <ParamGeneral params={params} setParams={setParams} />}
+          {activeMenu==="champs"      && <VisibiliteModule />}
         </div>
       </div>
     </div>

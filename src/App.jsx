@@ -2,7 +2,6 @@ import { useState } from "react";
 import SaisieModule       from "./pages/SaisieModule.jsx";
 import ValidationModule   from "./pages/ValidationModule.jsx";
 import WorkflowModule     from "./pages/WorkflowModule.jsx";
-import VisibiliteModule   from "./pages/VisibiliteModule.jsx";
 import ReferentielsModule from "./pages/ReferentielsModule.jsx";
 import AdminConsole       from "./pages/AdminConsole.jsx";
 
@@ -30,7 +29,6 @@ const MODULES = [
   { id:"saisie",       label:"Saisie & Controles",    icon:"✍",  color:"#0EA5E9", roles:["SAISISSEUR","VALIDEUR_N1","VALIDEUR_N2","CONFORMITE","REGLEMENTAIRE","DIRECTION"], component:SaisieModule       },
   { id:"validation",   label:"Circuit de Validation", icon:"✓",  color:"#10B981", roles:["VALIDEUR_N1","VALIDEUR_N2","CONFORMITE","REGLEMENTAIRE","DIRECTION"],             component:ValidationModule   },
   { id:"workflow",     label:"Moteur Workflow",        icon:"🔀", color:"#8B5CF6", roles:["DIRECTION"],                                                                      component:WorkflowModule     },
-  { id:"visibilite",   label:"Visibilite par Role",   icon:"👁",  color:"#F59E0B", roles:["DIRECTION"],                                                                      component:VisibiliteModule   },
   { id:"referentiels", label:"Referentiels",           icon:"📋", color:"#6366F1", roles:["DIRECTION"],                                                                      component:ReferentielsModule },
 ];
 
