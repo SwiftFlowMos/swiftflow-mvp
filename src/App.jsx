@@ -49,10 +49,12 @@ function LoginScreen({ onLogin }) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
+     const apiUrl = 'https://swiftflow-backend.onrender.com';
+     const res = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ login: login.trim(), password }),
+        const apiUrl = 'https://swiftflow-backend.onrender.com';
+const res = await fetch(`${apiUrl}/auth/login`, {
       });
       const data = await res.json();
       if (res.ok && data.token) {
