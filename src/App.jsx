@@ -8,6 +8,7 @@ import AdminConsole       from "./pages/AdminConsole.jsx";
 // ─────────────────────────────────────────────────────────
 // UTILISATEURS (demo — à remplacer par API en production)
 // ─────────────────────────────────────────────────────────
+const API_URL = import.meta.env.VITE_API_URL || 'https://swiftflow-backend.onrender.com';
 const USERS = [
   { id:1, login:"admin",       password:"Admin@2026",    nom:"Administrateur SwiftFlow", role:"ADMIN",         icon:"⚙",  color:"#64748b" },
   { id:2, login:"k.benali",    password:"Test@1234",     nom:"Khalid Benali",            role:"SAISISSEUR",    icon:"✍",  color:"#0EA5E9" },
@@ -47,9 +48,30 @@ function LoginScreen({ onLogin }) {
     setLoading(true);
     setError("");
     setTimeout(() => {
-      const user = USERS.find(u => u.login === login.trim() && u.password === password);
-      if (user) { onLogin(user); }
-      else { setError("Identifiant ou mot de passe incorrect."); setLoading(false); }
+      try {
+  const res = await fetch(`${API_URL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ login: login.trim(), password }),
+  });
+  const data = await res.json();
+  if (res.ok && data.token) {
+    localStorage.setItem('sf_token', data.token);
+    localStorage.setItem('sf_user', JSON.stringify(data.user));
+    const userObj = USERS.find(u => u.login === data.user.login) || {
+      ...data.user,
+      icon: '👤',
+      color: '#06b6d4',
+    };
+    onLogin({ ...userObj, ...data.user });
+  } else {
+    setError(data.message || "Identifiant ou mot de passe incorrect.");
+    setLoading(false);
+  }
+} catch(e) {
+  setError("Impossible de contacter le serveur. Veuillez réessayer.");
+  setLoading(false);
+}
     }, 800);
   };
 
