@@ -43,38 +43,35 @@ function LoginScreen({ onLogin }) {
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!login || !password) { setError("Veuillez saisir votre identifiant et mot de passe."); return; }
     setLoading(true);
     setError("");
-    setTimeout(() => {
-      try {
-  const res = await fetch(`${API_URL}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ login: login.trim(), password }),
-  });
-  const data = await res.json();
-  if (res.ok && data.token) {
-    localStorage.setItem('sf_token', data.token);
-    localStorage.setItem('sf_user', JSON.stringify(data.user));
-    const userObj = USERS.find(u => u.login === data.user.login) || {
-      ...data.user,
-      icon: '👤',
-      color: '#06b6d4',
-    };
-    onLogin({ ...userObj, ...data.user });
-  } else {
-    setError(data.message || "Identifiant ou mot de passe incorrect.");
-    setLoading(false);
-  }
-} catch(e) {
-  setError("Impossible de contacter le serveur. Veuillez réessayer.");
-  setLoading(false);
-}
-    }, 800);
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ login: login.trim(), password }),
+      });
+      const data = await res.json();
+      if (res.ok && data.token) {
+        localStorage.setItem('sf_token', data.token);
+        localStorage.setItem('sf_user', JSON.stringify(data.user));
+        const userObj = USERS.find(u => u.login === data.user.login) || {
+          ...data.user,
+          icon: '👤',
+          color: '#06b6d4',
+        };
+        onLogin({ ...userObj, ...data.user });
+      } else {
+        setError(data.message || "Identifiant ou mot de passe incorrect.");
+        setLoading(false);
+      }
+    } catch(e) {
+      setError("Impossible de contacter le serveur. Veuillez réessayer.");
+      setLoading(false);
+    }
   };
-
   const handleKey = e => { if (e.key === "Enter") handleSubmit(); };
 
   return (
