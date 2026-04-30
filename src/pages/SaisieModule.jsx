@@ -521,10 +521,25 @@ const handleSubmit = async () => {
       }),
     });
 
-    const data = await res.json();
-    if (res.ok) {
-      setStep(3);
-    } else {
+   const data = await res.json();
+if (res.ok) {
+  // Soumettre automatiquement au workflow
+  const submitRes = await fetch(`https://swiftflow-backend.onrender.com/payments/${data.id}/submit`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('sf_token')}`,
+    },
+  });
+  if (submitRes.ok) {
+    setStep(3);
+  } else {
+    const submitData = await submitRes.json();
+    alert('Ordre créé mais erreur de soumission : ' + (submitData.message || 'Erreur inconnue'));
+    setStep(3);
+  }
+}
+    else {
       alert('Erreur : ' + (data.message || 'Impossible de créer l\'ordre'));
     }
   } catch(e) {
