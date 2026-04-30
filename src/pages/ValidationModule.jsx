@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://swiftflow-backend.onrender.com';
+const getToken = () => localStorage.getItem('sf_token');
 // ─────────────────────────────────────────
 // DONNÉES SIMULÉES — remplacées par API en prod
 // ─────────────────────────────────────────
@@ -428,11 +430,74 @@ function OrderModal({ order, onClose, onAction }) {
 // COMPOSANT PRINCIPAL — TABLEAU DE BORD VALIDEUR
 // ─────────────────────────────────────────
 export default function ValidationDashboard() {
-  const [orders, setOrders] = useState(MOCK_ORDERS);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [filter, setFilter] = useState("EN_ATTENTE");
   const [search, setSearch] = useState("");
 
+  const loadOrders = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/payments/pending`, {
+        headers: { 'Authorization': `Bearer ${getToken()}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Adapter le format API au format attendu par le composant
+        setOrders(data.map(p => ({
+          id:          p.reference || p.id,
+          realId:      p.id,
+          createdAt:   new Date(p.createdAt).toLocaleString('fr-FR'),
+          valueDate:   p.valueDate ? new Date(p.valueDate).toLocaleDateString('fr-FR') : '',
+          amount:      p.amount,
+          currency:    p.currency,
+          beneName:    p.beneName,
+          beneBIC:     p.beneBIC || '',
+          beneIBAN:    p.beneIBAN || '',
+          beneCountry: p.beneCountry || '',
+          charges:     p.charges || 'SHA',
+          motif:       p.motif || '',
+          reference:   p.referenceClient || '',
+          details:     p.details || '',
+          status:      p.status,
+          amlStatus:   p.amlStatus,
+          createdBy:   p.createdBy?.nom || '',
+          auditLogs:   p.auditLogs || [],
+        })));
+      }
+    } catch(e) {
+      console.error('Erreur chargement ordres:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDecision = async (action, comment, orderId) => {
+    const realId = orders.find(o => o.id === orderId)?.realId || orderId;
+    const endpoint = action === 'APPROVE' ? 'approve' : action === 'REJECT' ? 'reject' : 'return';
+    try {
+      const res = await fetch(`${API_URL}/payments/${realId}/${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({ comment }),
+      });
+      if (res.ok) {
+        await loadOrders();
+        setSelected(null);
+      } else {
+        const data = await res.json();
+        alert('Erreur : ' + (data.message || 'Action impossible'));
+      }
+    } catch(e) {
+      alert('Erreur de connexion au serveur');
+    }
+  };
+
+  useEffect(() => { loadOrders(); }, []);
   const handleAction = (id, action, comment, delegate) => {
     const now = new Date().toLocaleString("fr-FR", { hour12: false }).replace(",", "");
     setOrders(prev => prev.map(o => {
