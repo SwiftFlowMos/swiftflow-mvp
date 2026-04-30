@@ -476,6 +476,61 @@ export default function SaisieModule() {
     (!needsDom || (domRef && domBanque)) &&
     (!usesIBAN || ibanCtrl === "valid");
 
+const handleSubmit = async () => {
+  const token = localStorage.getItem('sf_token');
+  const API_URL = import.meta.env.VITE_API_URL || 'https://swiftflow-backend.onrender.com';
+
+  try {
+    const res = await fetch(`${API_URL}/payments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        agenceCode:      agence?.code,
+        clientRef:       refClient?.ref,
+        clientNom:       nomClient,
+        clientAdresse:   adresseClient,
+        compteNum:       compte?.num,
+        compteDevise:    deviseCompte,
+        plafond:         parseFloat(plafond?.replace(/\s/g,'')||0),
+        amount:          parseFloat(amount),
+        currency:        currency?.code,
+        valueDate:       valueDate,
+        typeCours:       typeCours,
+        coursChange:     coursChange,
+        motif:           motif,
+        codeMotif:       codeMotif?.code,
+        categorie:       categorie,
+        typeTransfert:   typeTransfert,
+        domRef:          domRef,
+        domBanque:       domBanque?.label,
+        domDate:         domDate,
+        beneName:        beneName,
+        beneAdresse:     beneAdresse,
+        beneCountry:     country?.code,
+        beneIBAN:        beneIBAN,
+        beneBIC:         beneBank?.bic,
+        beneBankName:    beneBank?.nom,
+        correspondentBIC: correspondent?.bic,
+        incoterm:        incoterm?.code,
+        referenceClient: reference,
+        charges:         charges,
+        details:         details,
+      }),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      setStep(3);
+    } else {
+      alert('Erreur : ' + (data.message || 'Impossible de créer l\'ordre'));
+    }
+  } catch(e) {
+    alert('Erreur de connexion au serveur');
+  }
+};
   const G = { display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 };
 
   if (step === 3) return (
@@ -936,7 +991,7 @@ export default function SaisieModule() {
             </div>
             <div style={{ padding:"14px 22px", borderTop:"1px solid rgba(255,255,255,.05)", display:"flex", gap:10, justifyContent:"flex-end" }}>
               <button onClick={() => setStep(1)} style={{ padding:"8px 18px", borderRadius:8, fontSize:12, cursor:"pointer", background:"rgba(20,35,55,.8)", border:"1px solid #1D3250", color:"#7A8BA0" }}>Modifier</button>
-              <button onClick={() => setStep(3)} style={{ padding:"8px 22px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer", background:"linear-gradient(135deg,#0E6494,#0891b2)", border:"none", color:"#fff" }}>Confirmer et Envoyer</button>
+              <button onClick={handleSubmit} style={{ padding:"8px 22px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer", background:"linear-gradient(135deg,#0E6494,#0891b2)", border:"none", color:"#fff" }}>Confirmer et Envoyer</button>
             </div>
           </div>
         </div>
