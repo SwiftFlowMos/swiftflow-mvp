@@ -189,7 +189,7 @@ function OrderModal({ order, onClose, onAction }) {
               <AmlBadge status={order.aml} />
               <AmlBadge status={order.sanctions} />
               <div style={{ fontSize: 11, color: "#475569", marginLeft: 4 }}>
-                Saisi par <span style={{ color: "#94a3b8" }}>{order.saisisseur.name}</span> · {order.createdAt}
+         Saisi par <span style={{ color: "#94a3b8" }}>{order.createdBy?.nom || order.clientNom || 'N/A'}</span> · {order.createdAt}
               </div>
             </div>
           </div>
@@ -558,7 +558,7 @@ const totalPending = orders.filter(o => PENDING_STATUSES.includes(o.status)).red
               <div style={{ fontSize: 11, color: "#06b6d4", fontWeight: 700, fontFamily: "monospace" }}>{o.id}</div>
               <div>
                 <div style={{ fontSize: 12, color: "#e2e8f0", fontWeight: 600 }}>{o.beneName}</div>
-                <div style={{ fontSize: 10, color: "#334155", marginTop: 2 }}>{o.reference} · {o.saisisseur.name}</div>
+                <div style={{ fontSize: 10, color: "#334155", marginTop: 2 }}>{o.reference} · {o.createdBy?.nom || o.clientNom || 'N/A'}</div>
               </div>
               <div style={{ fontSize: 13, color: "#e2e8f0", fontWeight: 700 }}>{o.symbol}{parseFloat(o.amount).toLocaleString("fr-FR")}</div>
               <div style={{ fontSize: 11, color: "#64748b" }}>{o.currency} · {o.charges}</div>
