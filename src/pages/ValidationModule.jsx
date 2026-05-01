@@ -349,8 +349,8 @@ export default function ValidationDashboard() {
  const loadOrders = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('sf_token');
-      const res = await fetch('https://swiftflow-backend.onrender.com/payments/pending', {
+      const token = getToken();
+      const res = await fetch(`${API_URL}/payments`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (res.ok) {
