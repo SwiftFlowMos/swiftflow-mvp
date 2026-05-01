@@ -69,9 +69,10 @@ function AmlBadge({ status }) {
 }
 
 function Avatar({ name, size = 32 }) {
-  const initials = name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+  const safeName = name || 'NA';
+  const initials = safeName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
   const colors = ["#0891b2","#7c3aed","#059669","#d97706","#dc2626"];
-  const color = colors[name.charCodeAt(0) % colors.length];
+  const color = colors[safeName.charCodeAt(0) % colors.length];
   return (
     <div style={{
       width: size, height: size, borderRadius: "50%", flexShrink: 0,
@@ -209,7 +210,7 @@ function OrderModal({ order, onClose, onAction }) {
             <div style={{ fontSize: 11, color: "#475569", textTransform: "uppercase", letterSpacing: ".15em", marginBottom: 12 }}>Historique & Piste d'audit</div>
             <div style={{ position: "relative" }}>
               <div style={{ position: "absolute", left: 15, top: 0, bottom: 0, width: 1, background: "rgba(30,58,138,.3)" }} />
-              {order.history.map((h, i) => {
+              {(order.auditLogs || []).map((h, i) => {
                 const am = ACTION_MAP[h.action] || { color: "#64748b", icon: "·" };
                 return (
                   <div key={i} style={{ display: "flex", gap: 14, marginBottom: 14, paddingLeft: 4 }}>
@@ -221,11 +222,11 @@ function OrderModal({ order, onClose, onAction }) {
                     }}>{am.icon}</div>
                     <div style={{ paddingTop: 4 }}>
                       <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 3 }}>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8" }}>{h.by}</span>
-                        <span style={{ fontSize: 10, color: "#334155" }}>{h.at}</span>
+                   <span style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8" }}>{h.actorName || 'Système'}</span>
+                   <span style={{ fontSize: 10, color: "#334155" }}>{h.createdAt ? new Date(h.createdAt).toLocaleString('fr-FR') : ''}</span>
                         <span style={{ fontSize: 10, color: am.color, fontWeight: 700, letterSpacing: ".05em" }}>{h.action}</span>
                       </div>
-                      <div style={{ fontSize: 12, color: "#64748b", fontStyle: "italic" }}>"{h.comment}"</div>
+                      <div style={{ fontSize: 12, color: "#64748b", fontStyle: "italic" }}>{h.comment ? `"${h.comment}"` : ''}</div>
                     </div>
                   </div>
                 );
