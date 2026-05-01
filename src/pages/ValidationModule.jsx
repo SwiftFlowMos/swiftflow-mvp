@@ -408,21 +408,23 @@ export default function ValidationDashboard() {
     }
   };
 
-  const filteredOrders = orders.filter(o => {
-    const matchFilter =
-      filter === "EN_ATTENTE" ? (o.status === "EN_ATTENTE_N1" || o.status === "EN_ATTENTE_N2")
-      : filter === "TRAITÉS" ? (o.status === "APPROUVÉ" || o.status === "REJETÉ" || o.status === "RETOURNÉ")
-      : true;
-    const matchSearch = !search || o.id.includes(search.toUpperCase()) || o.beneName.toUpperCase().includes(search.toUpperCase());
-    return matchFilter && matchSearch;
-  });
+  const PENDING_STATUSES = ["EN_ATTENTE_N1", "EN_ATTENTE_N2", "PENDING_CONFORMITE", "PENDING_VALIDEUR_N1", "PENDING_VALIDEUR_N2", "PENDING_VALIDATION", "PENDING_REGLEMENTAIRE"];
+const TREATED_STATUSES = ["APPROUVÉ", "REJETÉ", "RETOURNÉ", "APPROVED", "REJECTED", "RETURNED"];
 
-  const pending  = orders.filter(o => o.status === "EN_ATTENTE_N1" || o.status === "EN_ATTENTE_N2").length;
-  const approved = orders.filter(o => o.status === "APPROUVÉ").length;
-  const rejected = orders.filter(o => o.status === "REJETÉ" || o.status === "RETOURNÉ").length;
-  const alertAml = orders.filter(o => o.aml === "ALERTE" && canAct(o)).length;
-  const totalPending = orders.filter(o => canAct(o)).reduce((s, o) => s + o.amount, 0);
+const filteredOrders = orders.filter(o => {
+  const matchFilter =
+    filter === "EN_ATTENTE" ? PENDING_STATUSES.includes(o.status)
+    : filter === "TRAITÉS"  ? TREATED_STATUSES.includes(o.status)
+    : true;
+  const matchSearch = !search || o.id.includes(search.toUpperCase()) || o.beneName.toUpperCase().includes(search.toUpperCase());
+  return matchFilter && matchSearch;
+});
 
+const pending  = orders.filter(o => PENDING_STATUSES.includes(o.status)).length;
+const approved = orders.filter(o => o.status === "APPROUVÉ" || o.status === "APPROVED").length;
+const rejected = orders.filter(o => o.status === "REJETÉ" || o.status === "RETOURNÉ" || o.status === "REJECTED" || o.status === "RETURNED").length;
+const alertAml = orders.filter(o => o.amlStatus === "ALERT").length;
+const totalPending = orders.filter(o => PENDING_STATUSES.includes(o.status)).reduce((s, o) => s + o.amount, 0);
   const statCards = [
     { label: "En attente",    value: pending,  color: "#f59e0b", icon: "⏳", sub: `${totalPending.toLocaleString("fr-FR")} en volume` },
     { label: "Approuvés",     value: approved, color: "#10b981", icon: "✅", sub: "Aujourd'hui" },
