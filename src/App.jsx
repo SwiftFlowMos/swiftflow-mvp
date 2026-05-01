@@ -1,5 +1,5 @@
 import { useState } from "react";
-const API_URL = import.meta.env.VITE_API_URL || 'https://swiftflow-backend.onrender.com';
+import { API_URL } from './config.js';
 import SaisieModule       from "./pages/SaisieModule.jsx";
 import ValidationModule   from "./pages/ValidationModule.jsx";
 import WorkflowModule     from "./pages/WorkflowModule.jsx";
