@@ -419,37 +419,59 @@ export default function ValidationDashboard() {
       });
       if (res.ok) {
         const data = await res.json();
-        setOrders(data.map(p => ({
-          id:          p.reference || p.id,
-          realId:      p.id,
-          createdAt:   p.createdAt ? new Date(p.createdAt).toLocaleString('fr-FR') : '',
-          valueDate:   p.valueDate ? new Date(p.valueDate).toLocaleDateString('fr-FR') : '',
-          amount:      p.amount || 0,
-          currency:    p.currency || 'MAD',
-          symbol:      p.currency === 'EUR' ? '€' : p.currency === 'USD' ? '$' : 'MAD',
-          beneName:    p.beneName || '',
-          beneBIC:     p.beneBIC || '',
-          beneIBAN:    p.beneIBAN || '',
-          beneCountry: p.beneCountry || '',
-          charges:     p.charges || 'SHA',
-          motif:       p.motif || '',
-          reference:   p.referenceClient || '',
-          details:     p.details || '',
-          status:      p.status || 'PENDING',
-          amlStatus:   p.amlStatus || 'PENDING',
-          clientNom:   p.clientNom || '',
-          agenceCode:  p.agenceCode || '',
-          categorie:   p.categorie || '',
-          typeTransfert: p.typeTransfert || '',
-          createdBy:   p.createdBy?.nom || '',
-          auditLogs:   (p.auditLogs || []).map(a => ({
-            date:    new Date(a.createdAt).toLocaleString('fr-FR'),
-            actor:   a.actorName || '',
-            action:  a.action || '',
-            comment: a.comment || '',
-            status:  a.newStatus || '',
-          })),
-        })));
+       setOrders(data.map(p => ({
+  id:            p.reference || p.id,
+  realId:        p.id,
+  createdAt:     p.createdAt ? new Date(p.createdAt).toLocaleString('fr-FR') : '',
+  valueDate:     p.valueDate ? new Date(p.valueDate).toLocaleDateString('fr-FR') : '',
+  amount:        p.amount || 0,
+  currency:      p.currency || 'MAD',
+  symbol:        p.currency === 'EUR' ? '€' : p.currency === 'USD' ? '$' : 'MAD',
+  // Donneur d'ordre
+  agenceCode:    p.agenceCode || '',
+  clientRef:     p.clientRef || '',
+  clientNom:     p.clientNom || '',
+  compteNum:     p.compteNum || '',
+  compteDevise:  p.compteDevise || '',
+  plafond:       p.plafond || '',
+  // Nature du transfert
+  categorie:     p.categorie || '',
+  typeTransfert: p.typeTransfert || '',
+  domRef:        p.domRef || '',
+  domBanque:     p.domBanque || '',
+  // Montant & Devise
+  typeCours:     p.typeCours || '',
+  coursChange:   p.coursChange || '',
+  motif:         p.motif || '',
+  codeMotif:     p.codeMotif || '',
+  // Bénéficiaire
+  beneName:      p.beneName || '',
+  beneAdresse:   p.beneAdresse || {},
+  beneCountry:   p.beneCountry || '',
+  beneIBAN:      p.beneIBAN || '',
+  beneBIC:       p.beneBIC || '',
+  beneBankName:  p.beneBankName || '',
+  // Détails paiement
+  reference:     p.referenceClient || '',
+  charges:       p.charges || 'SHA',
+  correspondentBIC: p.correspondentBIC || '',
+  incoterm:      p.incoterm || '',
+  details:       p.details || '',
+  // Contrôles
+  status:        p.status || 'PENDING',
+  amlStatus:     p.amlStatus || 'PENDING',
+  amlMessage:    p.amlMessage || '',
+  currentStep:   p.currentStep || 0,
+  // Méta
+  createdBy:     p.createdBy || {},
+  auditLogs:     (p.auditLogs || []).map(a => ({
+    date:    a.createdAt ? new Date(a.createdAt).toLocaleString('fr-FR') : '',
+    actor:   a.actorName || '',
+    action:  a.action || '',
+    comment: a.comment || '',
+    status:  a.newStatus || '',
+  })),
+})));
       }
     } catch(e) {
       console.error('Erreur chargement ordres:', e);
