@@ -100,7 +100,7 @@ function OrderModal({ order, onClose, onAction }) {
     if (!comment.trim() && action !== "APPROUVER") return;
     setSubmitted(true);
     setTimeout(() => {
-      onAction(order.id, action, comment, delegate);
+      onAction(order.realId || order.id, action, comment, delegate);
       onClose();
     }, 800);
   };
@@ -397,9 +397,7 @@ export default function ValidationDashboard() {
   useEffect(() => { loadOrders(); }, []);
 
   const handleAction = async (id, action, comment) => {
-    const order = orders.find(o => o.id === id);
-    if (!order) return;
-    const realId = order.realId || id;
+   const realId = id;
     const token = localStorage.getItem('sf_token');
     const endpoint = action === 'APPROUVER' ? 'approve' : action === 'REJETER' ? 'reject' : 'return';
     try {
