@@ -578,28 +578,7 @@ const totalPending = orders.filter(o => PENDING_STATUSES.includes(o.status)).red
     </div>
 
     {/* Boutons d'action */}
-    {canAct(o) && (
-      <div style={{ display:"flex", gap:8, marginTop:10, paddingTop:10, borderTop:"1px solid rgba(30,58,138,.1)" }}>
-        <button onClick={() => handleAction(o.id, 'APPROUVER', 'Approuvé')} style={{
-          padding:"6px 16px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer",
-          background:"rgba(16,185,129,.1)", border:"1px solid rgba(16,185,129,.3)", color:"#10b981",
-        }}>✓ Approuver</button>
-        <button onClick={() => {
-          const comment = prompt('Motif du rejet :');
-          if (comment) handleAction(o.id, 'REJETER', comment);
-        }} style={{
-          padding:"6px 16px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer",
-          background:"rgba(239,68,68,.08)", border:"1px solid rgba(239,68,68,.25)", color:"#ef4444",
-        }}>✕ Rejeter</button>
-        <button onClick={() => {
-          const comment = prompt('Motif du retour :');
-          if (comment) handleAction(o.id, 'RETOURNER', comment);
-        }} style={{
-          padding:"6px 16px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer",
-          background:"rgba(167,139,250,.08)", border:"1px solid rgba(167,139,250,.25)", color:"#a78bfa",
-        }}>↩ Retourner</button>
-      </div>
-    )}
+
   </div>
 ))}
         </div>
