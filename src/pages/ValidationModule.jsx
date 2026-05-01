@@ -436,23 +436,24 @@ export default function ValidationDashboard() {
   const [filter, setFilter] = useState("EN_ATTENTE");
   const [search, setSearch] = useState("");
 
-  const loadOrders = async () => {
+ const loadOrders = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/payments/pending`, {
-        headers: { 'Authorization': `Bearer ${getToken()}` },
+      const token = localStorage.getItem('sf_token');
+      const res = await fetch('https://swiftflow-backend.onrender.com/payments/pending', {
+        headers: { 'Authorization': `Bearer ${token}` },
       });
       if (res.ok) {
         const data = await res.json();
-        // Adapter le format API au format attendu par le composant
         setOrders(data.map(p => ({
           id:          p.reference || p.id,
           realId:      p.id,
-          createdAt:   new Date(p.createdAt).toLocaleString('fr-FR'),
+          createdAt:   p.createdAt ? new Date(p.createdAt).toLocaleString('fr-FR') : '',
           valueDate:   p.valueDate ? new Date(p.valueDate).toLocaleDateString('fr-FR') : '',
-          amount:      p.amount,
-          currency:    p.currency,
-          beneName:    p.beneName,
+          amount:      p.amount || 0,
+          currency:    p.currency || 'MAD',
+          symbol:      p.currency === 'EUR' ? '€' : p.currency === 'USD' ? '$' : 'MAD',
+          beneName:    p.beneName || '',
           beneBIC:     p.beneBIC || '',
           beneIBAN:    p.beneIBAN || '',
           beneCountry: p.beneCountry || '',
@@ -460,10 +461,20 @@ export default function ValidationDashboard() {
           motif:       p.motif || '',
           reference:   p.referenceClient || '',
           details:     p.details || '',
-          status:      p.status,
-          amlStatus:   p.amlStatus,
+          status:      p.status || 'PENDING',
+          amlStatus:   p.amlStatus || 'PENDING',
+          clientNom:   p.clientNom || '',
+          agenceCode:  p.agenceCode || '',
+          categorie:   p.categorie || '',
+          typeTransfert: p.typeTransfert || '',
           createdBy:   p.createdBy?.nom || '',
-          auditLogs:   p.auditLogs || [],
+          auditLogs:   (p.auditLogs || []).map(a => ({
+            date:    new Date(a.createdAt).toLocaleString('fr-FR'),
+            actor:   a.actorName || '',
+            action:  a.action || '',
+            comment: a.comment || '',
+            status:  a.newStatus || '',
+          })),
         })));
       }
     } catch(e) {
@@ -473,15 +484,20 @@ export default function ValidationDashboard() {
     }
   };
 
-  const handleDecision = async (action, comment, orderId) => {
-    const realId = orders.find(o => o.id === orderId)?.realId || orderId;
-    const endpoint = action === 'APPROVE' ? 'approve' : action === 'REJECT' ? 'reject' : 'return';
+  useEffect(() => { loadOrders(); }, []);
+
+  const handleAction = async (id, action, comment) => {
+    const order = orders.find(o => o.id === id);
+    if (!order) return;
+    const realId = order.realId || id;
+    const token = localStorage.getItem('sf_token');
+    const endpoint = action === 'APPROUVER' ? 'approve' : action === 'REJETER' ? 'reject' : 'return';
     try {
-      const res = await fetch(`${API_URL}/payments/${realId}/${endpoint}`, {
+      const res = await fetch(`https://swiftflow-backend.onrender.com/payments/${realId}/${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ comment }),
       });
@@ -495,26 +511,6 @@ export default function ValidationDashboard() {
     } catch(e) {
       alert('Erreur de connexion au serveur');
     }
-  };
-
-  useEffect(() => { loadOrders(); }, []);
-  const handleAction = (id, action, comment, delegate) => {
-    const now = new Date().toLocaleString("fr-FR", { hour12: false }).replace(",", "");
-    setOrders(prev => prev.map(o => {
-      if (o.id !== id) return o;
-      const newStatus =
-        action === "APPROUVER" ? (o.status === "EN_ATTENTE_N1" && o.validationLevel.approvers > 1 ? "EN_ATTENTE_N2" : "APPROUVÉ")
-        : action === "REJETER"   ? "REJETÉ"
-        : action === "RETOURNER" ? "RETOURNÉ"
-        : o.status;
-      const histEntry = {
-        at: now, by: CURRENT_USER.name,
-        action: action === "APPROUVER" ? (o.status === "EN_ATTENTE_N1" ? "APPROUVÉ_N1" : "APPROUVÉ_N2") : action,
-        comment: comment || (action === "APPROUVER" ? "Approuvé" : ""),
-        ...(delegate ? { delegate } : {}),
-      };
-      return { ...o, status: newStatus, history: [...o.history, histEntry] };
-    }));
   };
 
   const filteredOrders = orders.filter(o => {
