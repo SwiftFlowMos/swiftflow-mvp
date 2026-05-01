@@ -552,40 +552,54 @@ const totalPending = orders.filter(o => PENDING_STATUSES.includes(o.status)).red
             </div>
           )}
 
-          {filteredOrders.map((o, i) => (
-            <div
-              key={o.id}
-              className="row-hover"
-              onClick={() => setSelected(o)}
-              style={{
-                display: "grid", gridTemplateColumns: "140px 1fr 130px 110px 90px 110px 80px",
-                padding: "13px 18px",
-                borderBottom: i < filteredOrders.length - 1 ? "1px solid rgba(30,58,138,.15)" : "none",
-                background: o.aml === "ALERTE" ? "rgba(245,158,11,.025)" : "transparent",
-                transition: "background .15s",
-                alignItems: "center",
-              }}
-            >
-              <div style={{ fontSize: 11, color: "#06b6d4", fontWeight: 700, fontFamily: "monospace" }}>{o.id}</div>
-              <div>
-                <div style={{ fontSize: 12, color: "#e2e8f0", fontWeight: 600 }}>{o.beneName}</div>
-                <div style={{ fontSize: 10, color: "#334155", marginTop: 2 }}>{o.reference} · {o.createdBy?.nom || o.clientNom || 'N/A'}</div>
-              </div>
-              <div style={{ fontSize: 13, color: "#e2e8f0", fontWeight: 700 }}>{o.symbol}{parseFloat(o.amount).toLocaleString("fr-FR")}</div>
-              <div style={{ fontSize: 11, color: "#64748b" }}>{o.currency} · {o.charges}</div>
-              <div><AmlBadge status={o.aml} /></div>
-              <div><StatusBadge status={o.status} /></div>
-              <div>
-                {canAct(o) && (
-                  <div style={{
-                    display: "inline-flex", alignItems: "center", gap: 4,
-                    padding: "4px 10px", borderRadius: 7, fontSize: 11, fontWeight: 700,
-                    background: "rgba(6,182,212,.1)", border: "1px solid rgba(6,182,212,.25)", color: "#06b6d4",
-                  }}>Traiter →</div>
-                )}
-              </div>
-            </div>
-          ))}
+   {filteredOrders.map((o, i) => (
+  <div key={o.id} style={{
+    padding: "13px 18px",
+    borderBottom: i < filteredOrders.length - 1 ? "1px solid rgba(30,58,138,.15)" : "none",
+    background: o.amlStatus === "ALERT" ? "rgba(245,158,11,.025)" : "transparent",
+    transition: "background .15s",
+  }}>
+    {/* Ligne principale */}
+    <div style={{ display:"grid", gridTemplateColumns:"140px 1fr 130px 110px 110px", alignItems:"center", gap:8 }}>
+      <div style={{ fontSize:11, color:"#06b6d4", fontWeight:700, fontFamily:"monospace" }}>{o.id}</div>
+      <div>
+        <div style={{ fontSize:12, color:"#e2e8f0", fontWeight:600 }}>{o.beneName}</div>
+        <div style={{ fontSize:10, color:"#334155", marginTop:2 }}>{o.reference} · {o.createdBy?.nom || o.clientNom || 'N/A'}</div>
+      </div>
+      <div style={{ fontSize:13, color:"#e2e8f0", fontWeight:700 }}>{o.symbol}{parseFloat(o.amount||0).toLocaleString("fr-FR")} {o.currency}</div>
+      <div><StatusBadge status={o.status} /></div>
+      {/* Bouton détail */}
+      <button onClick={() => setSelected(o)} style={{
+        padding:"5px 10px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer",
+        background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.2)", color:"#06b6d4",
+      }}>👁 Détail</button>
+    </div>
+
+    {/* Boutons d'action */}
+    {canAct(o) && (
+      <div style={{ display:"flex", gap:8, marginTop:10, paddingTop:10, borderTop:"1px solid rgba(30,58,138,.1)" }}>
+        <button onClick={() => handleAction(o.id, 'APPROUVER', 'Approuvé')} style={{
+          padding:"6px 16px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer",
+          background:"rgba(16,185,129,.1)", border:"1px solid rgba(16,185,129,.3)", color:"#10b981",
+        }}>✓ Approuver</button>
+        <button onClick={() => {
+          const comment = prompt('Motif du rejet :');
+          if (comment) handleAction(o.id, 'REJETER', comment);
+        }} style={{
+          padding:"6px 16px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer",
+          background:"rgba(239,68,68,.08)", border:"1px solid rgba(239,68,68,.25)", color:"#ef4444",
+        }}>✕ Rejeter</button>
+        <button onClick={() => {
+          const comment = prompt('Motif du retour :');
+          if (comment) handleAction(o.id, 'RETOURNER', comment);
+        }} style={{
+          padding:"6px 16px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer",
+          background:"rgba(167,139,250,.08)", border:"1px solid rgba(167,139,250,.25)", color:"#a78bfa",
+        }}>↩ Retourner</button>
+      </div>
+    )}
+  </div>
+))}
         </div>
 
         <div style={{ marginTop: 12, fontSize: 10, color: "#1e3a5f", textAlign: "right" }}>
