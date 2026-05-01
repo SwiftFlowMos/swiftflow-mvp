@@ -9,12 +9,22 @@ import { API_URL, getToken } from '../config.js';
 // HELPERS
 // ─────────────────────────────────────────
 const STATUS_MAP = {
-  EN_ATTENTE_N1: { label: "Attente N1",    color: "#f59e0b", bg: "rgba(245,158,11,.1)",  border: "rgba(245,158,11,.25)", icon: "⏳" },
-  EN_ATTENTE_N2: { label: "Attente N2",    color: "#06b6d4", bg: "rgba(6,182,212,.1)",   border: "rgba(6,182,212,.25)",  icon: "🔄" },
-  APPROUVÉ:      { label: "Approuvé",      color: "#10b981", bg: "rgba(16,185,129,.1)",  border: "rgba(16,185,129,.25)", icon: "✅" },
-  REJETÉ:        { label: "Rejeté",        color: "#ef4444", bg: "rgba(239,68,68,.1)",   border: "rgba(239,68,68,.25)",  icon: "✕" },
-  RETOURNÉ:      { label: "Retourné",      color: "#a78bfa", bg: "rgba(167,139,250,.1)", border: "rgba(167,139,250,.25)",icon: "↩" },
-  INJECTÉ:       { label: "Injecté BO",    color: "#34d399", bg: "rgba(52,211,153,.1)",  border: "rgba(52,211,153,.25)", icon: "🚀" },
+  EN_ATTENTE_N1:       { label: "Attente N1",      color: "#f59e0b", bg: "rgba(245,158,11,.1)",  border: "rgba(245,158,11,.25)",  icon: "⏳" },
+  EN_ATTENTE_N2:       { label: "Attente N2",       color: "#06b6d4", bg: "rgba(6,182,212,.1)",   border: "rgba(6,182,212,.25)",   icon: "🔄" },
+  APPROUVÉ:            { label: "Approuvé",         color: "#10b981", bg: "rgba(16,185,129,.1)",  border: "rgba(16,185,129,.25)",  icon: "✅" },
+  REJETÉ:              { label: "Rejeté",           color: "#ef4444", bg: "rgba(239,68,68,.1)",   border: "rgba(239,68,68,.25)",   icon: "✕" },
+  RETOURNÉ:            { label: "Retourné",         color: "#a78bfa", bg: "rgba(167,139,250,.1)", border: "rgba(167,139,250,.25)", icon: "↩" },
+  INJECTÉ:             { label: "Injecté BO",       color: "#34d399", bg: "rgba(52,211,153,.1)",  border: "rgba(52,211,153,.25)",  icon: "🚀" },
+  PENDING_CONFORMITE:  { label: "Attente Conformité",color: "#f59e0b", bg: "rgba(245,158,11,.1)", border: "rgba(245,158,11,.25)",  icon: "⏳" },
+  PENDING_VALIDEUR_N1: { label: "Attente Valideur N1",color:"#f59e0b", bg:"rgba(245,158,11,.1)",  border:"rgba(245,158,11,.25)",   icon: "⏳" },
+  PENDING_VALIDEUR_N2: { label: "Attente Valideur N2",color:"#06b6d4", bg:"rgba(6,182,212,.1)",   border:"rgba(6,182,212,.25)",    icon: "🔄" },
+  PENDING_VALIDATION:  { label: "En validation",    color: "#f59e0b", bg: "rgba(245,158,11,.1)",  border: "rgba(245,158,11,.25)",  icon: "⏳" },
+  PENDING_REGLEMENTAIRE:{ label: "Attente Réglementaire",color:"#8b5cf6",bg:"rgba(139,92,246,.1)",border:"rgba(139,92,246,.25)",  icon: "📋" },
+  APPROVED:            { label: "Approuvé",         color: "#10b981", bg: "rgba(16,185,129,.1)",  border: "rgba(16,185,129,.25)",  icon: "✅" },
+  REJECTED:            { label: "Rejeté",           color: "#ef4444", bg: "rgba(239,68,68,.1)",   border: "rgba(239,68,68,.25)",   icon: "✕" },
+  RETURNED:            { label: "Retourné",         color: "#a78bfa", bg: "rgba(167,139,250,.1)", border: "rgba(167,139,250,.25)", icon: "↩" },
+  BLOCKED:             { label: "Bloqué AML",       color: "#ef4444", bg: "rgba(239,68,68,.1)",   border: "rgba(239,68,68,.25)",   icon: "🚫" },
+  DRAFT:               { label: "Brouillon",        color: "#64748b", bg: "rgba(100,116,139,.1)", border: "rgba(100,116,139,.25)", icon: "📝" },
 };
 const ACTION_MAP = {
   CRÉÉ:          { color: "#64748b", icon: "✍" },
