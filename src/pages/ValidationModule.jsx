@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://swiftflow-backend.onrender.com';
-const getToken = () => localStorage.getItem('sf_token');
+import { API_URL, getToken } from '../config.js';
 // ─────────────────────────────────────────
 // DONNÉES SIMULÉES — remplacées par API en prod
 // ─────────────────────────────────────────
