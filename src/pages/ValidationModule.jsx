@@ -37,7 +37,11 @@ const ACTION_MAP = {
   DÉLÉGUÉ:       { color: "#06b6d4", icon: "👤" },
 };
 const fmt = (n, cur) => `${parseFloat(n).toLocaleString("fr-FR")} ${cur}`;
-const canAct = (o) => o.status === "EN_ATTENTE_N1" || o.status === "EN_ATTENTE_N2";
+const canAct = (o) => [
+  "EN_ATTENTE_N1", "EN_ATTENTE_N2",
+  "PENDING_CONFORMITE", "PENDING_VALIDEUR_N1", "PENDING_VALIDEUR_N2",
+  "PENDING_VALIDATION", "PENDING_REGLEMENTAIRE",
+].includes(o.status);
 
 // ─────────────────────────────────────────
 // COMPOSANTS UI
