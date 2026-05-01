@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-
+import { API_URL, getToken } from '../config.js';
 // ─────────────────────────────────────────────────────────
 // RÉFÉRENTIELS
 // ─────────────────────────────────────────────────────────
@@ -477,9 +477,7 @@ export default function SaisieModule() {
     (!usesIBAN || ibanCtrl === "valid");
 
 const handleSubmit = async () => {
-  const token = localStorage.getItem('sf_token');
-  const API_URL = import.meta.env.VITE_API_URL || 'https://swiftflow-backend.onrender.com';
-
+ 
   try {
     const res = await fetch(`${API_URL}/payments`, {
       method: 'POST',
@@ -528,7 +526,7 @@ if (res.ok) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('sf_token')}`,
+      'Authorization': `Bearer ${getToken()}`,
     },
   });
   if (submitRes.ok) {
