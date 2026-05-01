@@ -155,7 +155,7 @@ function OrderModal({ order, onClose, onAction }) {
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: 11, color: "#475569", marginBottom: 4 }}>Niveau de validation</div>
                 <div style={{ fontSize: 13, color: "#06b6d4", fontWeight: 700 }}>
-                  {order.validationLevel.label} — {order.validationLevel.approvers} approbateur{order.validationLevel.approvers > 1 ? "s" : ""}
+                 {order.status} — étape {order.currentStep || 1}
                 </div>
               </div>
             </div>
