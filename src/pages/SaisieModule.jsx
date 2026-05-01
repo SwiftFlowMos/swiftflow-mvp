@@ -477,7 +477,7 @@ export default function SaisieModule() {
     (!usesIBAN || ibanCtrl === "valid");
 
 const handleSubmit = async () => {
- 
+  const token = getToken();
   try {
     const res = await fetch(`${API_URL}/payments`, {
       method: 'POST',
