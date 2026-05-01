@@ -165,21 +165,85 @@ function OrderModal({ order, onClose, onAction }) {
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-              {[
-                ["Bénéficiaire", order.beneName],
-                ["Pays", order.beneCountry],
-                ["IBAN", order.beneIBAN],
-                ["BIC", order.beneBIC],
-                ["Référence", order.reference],
-                ["Motif", order.motif],
-              ].map(([lbl, val]) => (
-                <div key={lbl}>
-                  <div style={{ fontSize: 10, color: "#334155", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 3 }}>{lbl}</div>
-                  <div style={{ fontSize: 12, color: "#e2e8f0", fontFamily: "monospace" }}>{val || "—"}</div>
-                </div>
-              ))}
-            </div>
+   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+
+  {/* Donneur d'ordre */}
+  <div style={{ gridColumn:"span 2", fontSize:10, color:"#06b6d4", textTransform:"uppercase", letterSpacing:".12em", marginBottom:4, marginTop:8 }}>Donneur d'ordre</div>
+  {[
+    ["Agence", order.agenceCode],
+    ["Référence client", order.clientRef],
+    ["Nom client", order.clientNom],
+    ["Numéro de compte", order.compteNum],
+    ["Devise du compte", order.compteDevise],
+    ["Plafond", order.plafond ? parseFloat(order.plafond).toLocaleString('fr-FR') : '—'],
+  ].map(([lbl, val]) => (
+    <div key={lbl}>
+      <div style={{ fontSize:10, color:"#334155", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:3 }}>{lbl}</div>
+      <div style={{ fontSize:12, color:"#e2e8f0", fontFamily:"monospace" }}>{val || "—"}</div>
+    </div>
+  ))}
+
+  {/* Nature du transfert */}
+  <div style={{ gridColumn:"span 2", fontSize:10, color:"#06b6d4", textTransform:"uppercase", letterSpacing:".12em", marginBottom:4, marginTop:8 }}>Nature du transfert</div>
+  {[
+    ["Catégorie", order.categorie],
+    ["Type", order.typeTransfert],
+    ["Domiciliation", order.domRef],
+    ["Banque domiciliataire", order.domBanque],
+  ].map(([lbl, val]) => (
+    <div key={lbl}>
+      <div style={{ fontSize:10, color:"#334155", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:3 }}>{lbl}</div>
+      <div style={{ fontSize:12, color:"#e2e8f0", fontFamily:"monospace" }}>{val || "—"}</div>
+    </div>
+  ))}
+
+  {/* Montant & Devise */}
+  <div style={{ gridColumn:"span 2", fontSize:10, color:"#06b6d4", textTransform:"uppercase", letterSpacing:".12em", marginBottom:4, marginTop:8 }}>Montant & Devise</div>
+  {[
+    ["Montant", order.amount ? parseFloat(order.amount).toLocaleString('fr-FR') + ' ' + order.currency : '—'],
+    ["Date de valeur", order.valueDate],
+    ["Type de cours", order.typeCours],
+    ["Cours de change", order.coursChange],
+    ["Motif", order.motif],
+    ["Code motif", order.codeMotif],
+  ].map(([lbl, val]) => (
+    <div key={lbl}>
+      <div style={{ fontSize:10, color:"#334155", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:3 }}>{lbl}</div>
+      <div style={{ fontSize:12, color:"#e2e8f0", fontFamily:"monospace" }}>{val || "—"}</div>
+    </div>
+  ))}
+
+  {/* Bénéficiaire */}
+  <div style={{ gridColumn:"span 2", fontSize:10, color:"#06b6d4", textTransform:"uppercase", letterSpacing:".12em", marginBottom:4, marginTop:8 }}>Bénéficiaire</div>
+  {[
+    ["Nom / Raison sociale", order.beneName],
+    ["Pays", order.beneCountry],
+    ["IBAN / Numéro de compte", order.beneIBAN],
+    ["BIC banque bénéficiaire", order.beneBIC],
+    ["Nom banque bénéficiaire", order.beneBankName],
+  ].map(([lbl, val]) => (
+    <div key={lbl}>
+      <div style={{ fontSize:10, color:"#334155", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:3 }}>{lbl}</div>
+      <div style={{ fontSize:12, color:"#e2e8f0", fontFamily:"monospace" }}>{val || "—"}</div>
+    </div>
+  ))}
+
+  {/* Détails paiement */}
+  <div style={{ gridColumn:"span 2", fontSize:10, color:"#06b6d4", textTransform:"uppercase", letterSpacing:".12em", marginBottom:4, marginTop:8 }}>Détails du paiement</div>
+  {[
+    ["Référence client", order.reference],
+    ["Frais bancaires", order.charges],
+    ["Banque correspondante", order.correspondentBIC],
+    ["Incoterm", order.incoterm],
+    ["Libellé SWIFT", order.details],
+  ].map(([lbl, val]) => (
+    <div key={lbl}>
+      <div style={{ fontSize:10, color:"#334155", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:3 }}>{lbl}</div>
+      <div style={{ fontSize:12, color:"#e2e8f0", fontFamily:"monospace" }}>{val || "—"}</div>
+    </div>
+  ))}
+
+</div>
 
             {order.madTransferType && (
               <div style={{ marginTop: 14, padding: "10px 14px", background: "rgba(245,158,11,.04)", border: "1px solid rgba(245,158,11,.15)", borderRadius: 8 }}>
