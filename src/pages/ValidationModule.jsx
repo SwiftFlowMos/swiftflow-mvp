@@ -2,112 +2,8 @@ import { useState, useEffect } from "react";
 
 import { API_URL, getToken } from '../config.js';
 // ─────────────────────────────────────────
-// DONNÉES SIMULÉES — remplacées par API en prod
-// ─────────────────────────────────────────
-const MOCK_ORDERS = [
-  {
-    id: "TRF-84729301", createdAt: "2026-04-20 08:14", valueDate: "2026-04-21",
-    amount: 48500, currency: "EUR", symbol: "€",
-    beneName: "SCHNEIDER ELECTRIC SA", beneBIC: "BNPAFRPPXXX", beneIBAN: "FR76 3000 6000 0112 3456 7890 189",
-    beneCountry: "FR", paymentType: "SWIFT_SHA", charges: "SHA", motif: "SERVICE",
-    reference: "FACT-2026-00891", details: "Paiement prestation conseil Q1 2026",
-    madTransferType: null, domiciliationRef: null,
-    saisisseur: { name: "Khalid Benali", role: "Chargé d'opérations" },
-    aml: "VALIDÉ", sanctions: "VALIDÉ",
-    validationLevel: { label: "Niveau 1", approvers: 1 },
-    status: "EN_ATTENTE_N1",
-    history: [
-      { at: "2026-04-20 08:14", by: "Khalid Benali", action: "CRÉÉ", comment: "Ordre saisi et soumis" },
-      { at: "2026-04-20 08:15", by: "Système AML", action: "AML_OK", comment: "Aucun match — Fircosoft" },
-    ],
-  },
-  {
-    id: "TRF-84729188", createdAt: "2026-04-20 07:52", valueDate: "2026-04-22",
-    amount: 1250000, currency: "USD", symbol: "$",
-    beneName: "GLOBAL TRADE PARTNERS LLC", beneBIC: "CITIUS33XXX", beneIBAN: "US12 3456 7890 1234 5678 90",
-    beneCountry: "US", paymentType: "SWIFT_OUR", charges: "OUR", motif: "TRADE",
-    reference: "PO-2026-4421", details: "Règlement importation équipements industriels",
-    madTransferType: null, domiciliationRef: null,
-    saisisseur: { name: "Samira Ouazzani", role: "Chargée d'opérations senior" },
-    aml: "ALERTE", sanctions: "VALIDÉ",
-    validationLevel: { label: "Niveau 2", approvers: 2 },
-    status: "EN_ATTENTE_N1",
-    history: [
-      { at: "2026-04-20 07:52", by: "Samira Ouazzani", action: "CRÉÉ", comment: "Ordre saisi" },
-      { at: "2026-04-20 07:53", by: "Système AML", action: "AML_ALERTE", comment: "Score risque élevé — contrôle renforcé requis" },
-    ],
-  },
-  {
-    id: "TRF-84728944", createdAt: "2026-04-19 16:30", valueDate: "2026-04-21",
-    amount: 320000, currency: "MAD", symbol: "DH",
-    beneName: "SIEMENS MAROC SARL", beneBIC: "BCDMMAMC", beneIBAN: "MA64 0110 0001 0010 0100 1000 1200",
-    beneCountry: "MA", paymentType: "SWIFT_SHA", charges: "SHA", motif: "TRADE",
-    reference: "DOM-2026-003341", details: "Règlement importation matériel électrique",
-    madTransferType: "COMMERCIAL", domiciliationRef: "DOM-2026-003341",
-    domiciliationBank: "Attijariwafa Bank", domiciliationDate: "2026-03-15",
-    saisisseur: { name: "Youssef Tazi", role: "Chargé d'opérations" },
-    aml: "VALIDÉ", sanctions: "VALIDÉ",
-    validationLevel: { label: "Niveau 1", approvers: 1 },
-    status: "EN_ATTENTE_N1",
-    history: [
-      { at: "2026-04-19 16:30", by: "Youssef Tazi", action: "CRÉÉ", comment: "Ordre saisi" },
-      { at: "2026-04-19 16:31", by: "Système AML", action: "AML_OK", comment: "Conforme" },
-    ],
-  },
-  {
-    id: "TRF-84728801", createdAt: "2026-04-19 14:10", valueDate: "2026-04-20",
-    amount: 875000, currency: "GBP", symbol: "£",
-    beneName: "BARCLAYS CAPITAL UK LTD", beneBIC: "BARCGB22XXX", beneIBAN: "GB29 NWBK 6016 1331 9268 19",
-    beneCountry: "GB", paymentType: "SWIFT_OUR", charges: "OUR", motif: "INVEST",
-    reference: "INV-2026-0077", details: "Investissement obligations souveraines",
-    madTransferType: null, domiciliationRef: null,
-    saisisseur: { name: "Nadia Chraibi", role: "Chargée d'opérations senior" },
-    aml: "VALIDÉ", sanctions: "VALIDÉ",
-    validationLevel: { label: "Niveau 2", approvers: 2 },
-    status: "EN_ATTENTE_N2",
-    history: [
-      { at: "2026-04-19 14:10", by: "Nadia Chraibi", action: "CRÉÉ", comment: "Ordre saisi" },
-      { at: "2026-04-19 14:11", by: "Système AML", action: "AML_OK", comment: "Conforme" },
-      { at: "2026-04-19 15:22", by: "Hassan Moukrim", action: "APPROUVÉ_N1", comment: "Vérification documents OK, validé en première lecture." },
-    ],
-  },
-  {
-    id: "TRF-84728650", createdAt: "2026-04-19 11:05", valueDate: "2026-04-21",
-    amount: 95000, currency: "CAD", symbol: "CA$",
-    beneName: "MAPLE TECH SOLUTIONS INC", beneBIC: "ROYCCAT2XXX", beneIBAN: "CA00 1234 5678 9012 3456 78",
-    beneCountry: "CA", paymentType: "SWIFT_SHA", charges: "SHA", motif: "SERVICE",
-    reference: "SVC-2026-1102", details: "Licence logiciel annuelle",
-    madTransferType: null, domiciliationRef: null,
-    saisisseur: { name: "Khalid Benali", role: "Chargé d'opérations" },
-    aml: "VALIDÉ", sanctions: "VALIDÉ",
-    validationLevel: { label: "Niveau 1", approvers: 1 },
-    status: "APPROUVÉ",
-    history: [
-      { at: "2026-04-19 11:05", by: "Khalid Benali", action: "CRÉÉ", comment: "Ordre saisi" },
-      { at: "2026-04-19 11:06", by: "Système AML", action: "AML_OK", comment: "Conforme" },
-      { at: "2026-04-19 12:30", by: "Hassan Moukrim", action: "APPROUVÉ_N1", comment: "Validé — documents conformes." },
-    ],
-  },
-  {
-    id: "TRF-84728511", createdAt: "2026-04-18 09:20", valueDate: "2026-04-19",
-    amount: 210000, currency: "EUR", symbol: "€",
-    beneName: "TOTAL ENERGIES SE", beneBIC: "BNPAFRPPXXX", beneIBAN: "FR76 3000 4000 0300 0000 0044 443",
-    beneCountry: "FR", paymentType: "SEPA_CT", charges: "SHA", motif: "TRADE",
-    reference: "FACT-2026-00712", details: "Facture carburants Q4 2025",
-    madTransferType: null, domiciliationRef: null,
-    saisisseur: { name: "Samira Ouazzani", role: "Chargée d'opérations senior" },
-    aml: "VALIDÉ", sanctions: "VALIDÉ",
-    validationLevel: { label: "Niveau 1", approvers: 1 },
-    status: "REJETÉ",
-    history: [
-      { at: "2026-04-18 09:20", by: "Samira Ouazzani", action: "CRÉÉ", comment: "Ordre saisi" },
-      { at: "2026-04-18 09:21", by: "Système AML", action: "AML_OK", comment: "Conforme" },
-      { at: "2026-04-18 10:45", by: "Hassan Moukrim", action: "REJETÉ", comment: "Facture originale non jointe — retourner avec justificatif." },
-    ],
-  },
-];
 
-const CURRENT_USER = { name: "Hassan Moukrim", role: "Valideur N1 / N2", initials: "HM" };
+
 
 // ─────────────────────────────────────────
 // HELPERS
@@ -571,10 +467,10 @@ export default function ValidationDashboard() {
               <span style={{ fontSize: 10, color: "#f59e0b", letterSpacing: 2 }}>{pending} EN ATTENTE</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 8, background: "rgba(6,182,212,.06)", border: "1px solid rgba(6,182,212,.12)" }}>
-              <Avatar name={CURRENT_USER.name} size={26} />
+           <Avatar name={JSON.parse(localStorage.getItem('sf_user') || '{}').nom || 'User'} size={26} />
               <div>
-                <div style={{ fontSize: 11, color: "#e2e8f0", fontWeight: 600 }}>{CURRENT_USER.name}</div>
-                <div style={{ fontSize: 9, color: "#475569" }}>{CURRENT_USER.role}</div>
+                <div style={{ fontSize: 11, color: "#e2e8f0", fontWeight: 600 }}>{JSON.parse(localStorage.getItem('sf_user') || '{}').nom || 'User'}</div>
+                <div style={{ fontSize: 9, color: "#475569" }}>{JSON.parse(localStorage.getItem('sf_user') || '{}').role || ''}</div>
               </div>
             </div>
           </div>
