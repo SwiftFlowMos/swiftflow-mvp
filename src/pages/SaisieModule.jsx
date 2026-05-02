@@ -415,13 +415,18 @@ useEffect(() => {
     const bb = REF_BENE_BANKS.find(b => b.bic === orderToEdit.beneBIC);
     if (bb) setBeneBank(bb);
   }
-  if (orderToEdit.compteNum) {
+ if (orderToEdit.compteNum) {
     const cp = REF_COMPTES.find(c => c.num === orderToEdit.compteNum);
-    if (cp) setCompte(cp);
+    if (cp) {
+      setCompte(cp);
+      setDeviseCompte(cp.devise);
+      setPlafond(cp.plafond.toLocaleString("fr-FR"));
+    }
   }
-  if (orderToEdit.typeTransfert) {
-    setTypeTransfert(orderToEdit.typeTransfert);
-  }
+  // Type transfert — après catégorie
+  setTimeout(() => {
+    if (orderToEdit.typeTransfert) setTypeTransfert(orderToEdit.typeTransfert);
+  }, 100);
   if (orderToEdit.codeMotif) {
     const cm = REF_CODES_MOTIFS.find(c => c.code === orderToEdit.codeMotif);
     if (cm) setCodeMotif(cm);
