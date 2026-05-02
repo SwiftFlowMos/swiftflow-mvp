@@ -80,7 +80,7 @@ function OrderDetail({ order, onClose }) {
             {order.domRef && <Field label="Domiciliation" value={order.domRef} />}
             {order.domBanque && <Field label="Banque domiciliataire" value={order.domBanque} />}
           </Section>
-          <Section title="Donneur d'ordre">
+          <Section title="Donneur d ordre">
             <Field label="Agence" value={order.agenceCode} />
             <Field label="Reference client" value={order.clientRef} />
             <Field label="Nom client" value={order.clientNom} />
@@ -370,7 +370,7 @@ const resetCriteres = () => setCriteres({ dateDebut:"", dateFin:"", valeurDebut:
             style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:11, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
         </div>
         <div>
-          <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Donneur d'ordre</div>
+          <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Donneur d ordre</div>
           <input value={criteres.donneur} onChange={e => setCrit("donneur", e.target.value)} placeholder="Nom du client..."
             style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:11, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
         </div>
