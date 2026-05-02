@@ -500,9 +500,10 @@ useEffect(() => {
 
 const handleSubmit = async () => {
   const token = getToken();
+  const isEdit = !!orderToEdit;
   try {
-    const res = await fetch(`${API_URL}/payments`, {
-      method: 'POST',
+    const res = await fetch(isEdit ? `${API_URL}/payments/${orderToEdit.id}` : `${API_URL}/payments`, {
+      method: isEdit ? 'PUT' : 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
@@ -543,16 +544,16 @@ const handleSubmit = async () => {
 
    const data = await res.json();
 if (res.ok) {
-  // Soumettre automatiquement au workflow
-  const submitRes = await fetch(`https://swiftflow-backend.onrender.com/payments/${data.id}/submit`, {
+  const submitRes = await fetch(`${API_URL}/payments/${data.id}/submit`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${getToken()}`,
     },
   });
-  if (submitRes.ok) {
-    setStep(3);
+ if (submitRes.ok) {
+    if (onSaved) onSaved();
+    else setStep(3);
   } else {
     const submitData = await submitRes.json();
     alert('Ordre créé mais erreur de soumission : ' + (submitData.message || 'Erreur inconnue'));
