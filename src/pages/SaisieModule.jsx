@@ -369,10 +369,32 @@ function Ctrl({ status, label }) {
 // ─────────────────────────────────────────────────────────
 // APP PRINCIPALE
 // ─────────────────────────────────────────────────────────
-export default function SaisieModule() {
+export default function SaisieModule({ orderToEdit, onSaved }) {
   const [orderId] = useState(genRef);
   const [step, setStep] = useState(1);
-
+// Pré-remplissage si modification d'un ordre existant
+useEffect(() => {
+  if (!orderToEdit) return;
+  setCategorie(orderToEdit.categorie || "");
+  setTypeTransfert(orderToEdit.typeTransfert || "");
+  setDomRef(orderToEdit.domRef || "");
+  setDomDate(orderToEdit.domDate || "");
+  setNomClient(orderToEdit.clientNom || "");
+  setAdresseClient(orderToEdit.clientAdresse || {});
+  setDeviseCompte(orderToEdit.compteDevise || "");
+  setPlafond(orderToEdit.plafond ? orderToEdit.plafond.toLocaleString("fr-FR") : "");
+  setAmount(orderToEdit.amount || "");
+  setValueDate(orderToEdit.valueDate ? new Date(orderToEdit.valueDate).toISOString().split("T")[0] : "");
+  setTypeCours(orderToEdit.typeCours || "");
+  setCoursChange(orderToEdit.coursChange || "");
+  setMotif(orderToEdit.motif || "");
+  setBeneName(orderToEdit.beneName || "");
+  setBeneAdresse(orderToEdit.beneAdresse || {});
+  setBeneIBAN(orderToEdit.beneIBAN || "");
+  setReference(orderToEdit.referenceClient || "");
+  setDetails(orderToEdit.details || "");
+  setCharges(orderToEdit.charges || "SHA");
+}, [orderToEdit]);
   // Nature du transfert (R9)
   const [categorie, setCategorie] = useState("");
   const [typeTransfert, setTypeTransfert] = useState("");
