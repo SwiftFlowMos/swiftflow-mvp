@@ -111,10 +111,10 @@ function OrderDetail({ order, onClose }) {
             <Field label="Libelle SWIFT" value={order.details} />
           </Section>
 
-          {/* Piste d'audit */}
+          {/* Piste audit */}
           {order.auditLogs && order.auditLogs.length > 0 && (
             <div>
-              <div style={{ fontSize:10, color:"#06b6d4", textTransform:"uppercase", letterSpacing:".12em", marginBottom:8, paddingBottom:4, borderBottom:"1px solid rgba(6,182,212,.15)" }}>Historique & Piste d'audit</div>
+              <div style={{ fontSize:10, color:"#06b6d4", textTransform:"uppercase", letterSpacing:".12em", marginBottom:8, paddingBottom:4, borderBottom:"1px solid rgba(6,182,212,.15)" }}>Historique & Piste d audit</div>
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                 {order.auditLogs.map((a, i) => (
                   <div key={i} style={{ display:"flex", gap:10, padding:"8px 12px", background:"rgba(255,255,255,.03)", borderRadius:8, borderLeft:"2px solid rgba(6,182,212,.3)" }}>
@@ -137,7 +137,7 @@ function OrderDetail({ order, onClose }) {
             <div style={{ padding:"12px 14px", background:"rgba(167,139,250,.07)", border:"1px solid rgba(167,139,250,.25)", borderRadius:8 }}>
               <div style={{ fontSize:10, color:"#a78bfa", fontWeight:700, textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Motif du retour</div>
               <div style={{ fontSize:12, color:"#C8D8EA" }}>
-                {order.auditLogs.filter(a => a.action === "RETURNED" || a.action?.includes("RETURN")).slice(-1)[0]?.comment || "Voir piste d'audit"}
+                {order.auditLogs.filter(a => a.action === "RETURNED" || a.action?.includes("RETURN")).slice(-1)[0]?.comment || "Voir piste d audit"}
               </div>
             </div>
           )}
@@ -154,9 +154,9 @@ function ConfirmDelete({ order, onConfirm, onCancel }) {
   return (
     <div style={{ position:"fixed", inset:0, zIndex:10000, background:"rgba(4,8,18,.9)", backdropFilter:"blur(10px)", display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
       <div style={{ width:"100%", maxWidth:420, background:"#0C1628", border:"1px solid rgba(239,68,68,.3)", borderRadius:14, padding:24, boxShadow:"0 40px 80px rgba(0,0,0,.7)" }}>
-        <div style={{ fontSize:16, fontWeight:700, color:"#E2EAF2", marginBottom:8 }}>Supprimer l'ordre ?</div>
+        <div style={{ fontSize:16, fontWeight:700, color:"#E2EAF2", marginBottom:8 }}>Supprimer l ordre ?</div>
         <div style={{ fontSize:12, color:"#7A8BA0", marginBottom:20 }}>
-          L'ordre <span style={{ color:"#06b6d4", fontFamily:"monospace" }}>{order.reference}</span> sera supprime definitivement. Cette action est irreversible.
+          L ordre <span style={{ color:"#06b6d4", fontFamily:"monospace" }}>{order.reference}</span> sera supprime definitivement. Cette action est irreversible.
         </div>
         <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
           <button onClick={onCancel} style={{ padding:"8px 18px", borderRadius:8, fontSize:12, cursor:"pointer", background:"rgba(30,41,59,.5)", border:"1px solid #1D3250", color:"#7A8BA0" }}>Annuler</button>
@@ -430,7 +430,7 @@ const resetCriteres = () => setCriteres({ dateDebut:"", dateFin:"", valeurDebut:
                   </div>
                 )}
 
-                {/* Boutons d'action */}
+                {/* Boutons d action */}
                 <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                   <button onClick={() => setSelected(order)} style={{ padding:"5px 12px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer", background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.2)", color:"#06b6d4" }}>
                     👁 Detail
