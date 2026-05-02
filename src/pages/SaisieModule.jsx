@@ -394,6 +394,38 @@ useEffect(() => {
   setReference(orderToEdit.referenceClient || "");
   setDetails(orderToEdit.details || "");
   setCharges(orderToEdit.charges || "SHA");
+  // Champs référentiel — retrouver les objets complets
+  if (orderToEdit.agenceCode) {
+    const ag = REF_AGENCES.find(a => a.code === orderToEdit.agenceCode);
+    if (ag) setAgence(ag);
+  }
+  if (orderToEdit.clientRef) {
+    const cl = REF_CLIENTS.find(c => c.ref === orderToEdit.clientRef);
+    if (cl) setRefClient(cl);
+  }
+  if (orderToEdit.currency) {
+    const cu = REF_CURRENCIES.find(c => c.code === orderToEdit.currency);
+    if (cu) setCurrency(cu);
+  }
+  if (orderToEdit.beneCountry) {
+    const co = REF_COUNTRIES.find(c => c.code === orderToEdit.beneCountry);
+    if (co) setCountry(co);
+  }
+  if (orderToEdit.beneBIC) {
+    const bb = REF_BENE_BANKS.find(b => b.bic === orderToEdit.beneBIC);
+    if (bb) setBeneBank(bb);
+  }
+  if (orderToEdit.compteNum) {
+    const cp = REF_COMPTES.find(c => c.num === orderToEdit.compteNum);
+    if (cp) setCompte(cp);
+  }
+  if (orderToEdit.typeTransfert) {
+    setTypeTransfert(orderToEdit.typeTransfert);
+  }
+  if (orderToEdit.codeMotif) {
+    const cm = REF_CODES_MOTIFS.find(c => c.code === orderToEdit.codeMotif);
+    if (cm) setCodeMotif(cm);
+  }
 }, [orderToEdit]);
   // Nature du transfert (R9)
   const [categorie, setCategorie] = useState("");
