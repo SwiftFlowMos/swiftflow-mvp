@@ -5,6 +5,7 @@ import ValidationModule   from "./pages/ValidationModule.jsx";
 import WorkflowModule     from "./pages/WorkflowModule.jsx";
 import ReferentielsModule from "./pages/ReferentielsModule.jsx";
 import AdminConsole       from "./pages/AdminConsole.jsx";
+import MesOrdres from "./pages/MesOrdres.jsx";
 
 const USERS = [
   { id:1, login:"admin",      password:"Admin@2026", nom:"Administrateur SwiftFlow", role:"ADMIN",         icon:"⚙",  color:"#64748b" },
@@ -24,6 +25,7 @@ const ROLE_LABELS = {
 
 const MODULES = [
   { id:"saisie",       label:"Saisie & Controles",    icon:"✍",  color:"#0EA5E9", roles:["SAISISSEUR","VALIDEUR_N1","VALIDEUR_N2","CONFORMITE","REGLEMENTAIRE","DIRECTION"], component:SaisieModule       },
+  { id:"mesordres", label:"Mes Ordres", icon:"📂", color:"#F59E0B", roles:["SAISISSEUR","VALIDEUR_N1","VALIDEUR_N2","CONFORMITE","REGLEMENTAIRE","DIRECTION"], component:MesOrdres },
   { id:"validation",   label:"Circuit de Validation", icon:"✓",  color:"#10B981", roles:["VALIDEUR_N1","VALIDEUR_N2","CONFORMITE","REGLEMENTAIRE","DIRECTION"],             component:ValidationModule   },
   { id:"workflow",     label:"Moteur Workflow",        icon:"🔀", color:"#8B5CF6", roles:["DIRECTION"],                                                                      component:WorkflowModule     },
   { id:"referentiels", label:"Referentiels",           icon:"📋", color:"#6366F1", roles:["DIRECTION"],                                                                      component:ReferentielsModule },
