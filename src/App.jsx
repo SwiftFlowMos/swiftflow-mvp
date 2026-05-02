@@ -137,6 +137,7 @@ function LoginScreen({ onLogin }) {
 }
 
 export default function App() {
+ const [orderToEdit, setOrderToEdit] = useState(null);
   const [user, setUser]           = useState(null);
   const [activeModule, setActive] = useState(null);
   const [showAdmin, setShowAdmin] = useState(false);
@@ -224,7 +225,16 @@ export default function App() {
             </div>
           </div>
         )}
-        {ActiveComp && <ActiveComp />}
+        {ActiveComp && (
+  activeModule === "mesordres"
+    ? <ActiveComp onEditOrder={(order) => {
+        setOrderToEdit(order);
+        setActive("saisie");
+      }} />
+    : activeModule === "saisie"
+    ? <ActiveComp orderToEdit={orderToEdit} onSaved={() => { setOrderToEdit(null); setActive("mesordres"); }} />
+    : <ActiveComp />
+)}
       </div>
     </div>
   );
