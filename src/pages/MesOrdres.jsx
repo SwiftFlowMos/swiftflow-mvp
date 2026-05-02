@@ -5,6 +5,7 @@ import { API_URL, getToken } from "../config.js";
 // HELPERS
 // ─────────────────────────────────────────────────────────
 const ONGLETS = [
+  { id:"TOUS",     label:"Tous",        icon:"📋", color:"#06b6d4", statuses:["DRAFT","RETURNED","APPROVED","REJECTED","BLOCKED","PENDING_CONFORMITE","PENDING_VALIDEUR_N1","PENDING_VALIDEUR_N2","PENDING_VALIDATION","PENDING_REGLEMENTAIRE"] },
   { id:"DRAFT",    label:"Brouillons",  icon:"📝", color:"#64748b", statuses:["DRAFT"] },
   { id:"RETURNED", label:"Retournes",   icon:"↩",  color:"#a78bfa", statuses:["RETURNED"] },
   { id:"APPROVED", label:"Approuves",   icon:"✅", color:"#10b981", statuses:["APPROVED"] },
@@ -170,13 +171,27 @@ function ConfirmDelete({ order, onConfirm, onCancel }) {
 // MODULE PRINCIPAL
 // ─────────────────────────────────────────────────────────
 export default function MesOrdres({ onEditOrder }) {
-  const [onglet, setOnglet] = useState("DRAFT");
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState(null);
-  const [toDelete, setToDelete] = useState(null);
-  const [search, setSearch] = useState("");
-  const [msg, setMsg] = useState(null);
+const [onglet, setOnglet] = useState("TOUS");
+const [orders, setOrders] = useState([]);
+const [loading, setLoading] = useState(true);
+const [selected, setSelected] = useState(null);
+const [toDelete, setToDelete] = useState(null);
+const [search, setSearch] = useState("");
+const [msg, setMsg] = useState(null);
+
+// Critères de recherche multi
+const [criteres, setCriteres] = useState({
+  dateDebut:   "",
+  dateFin:     "",
+  valeurDebut: "",
+  valeurFin:   "",
+  reference:   "",
+  donneur:     "",
+  beneficiaire:"",
+  devise:      "",
+});
+const setCrit = (k, v) => setCriteres(p => ({ ...p, [k]: v }));
+const [showCriteres, setShowCriteres] = useState(false);
 
   const currentOnglet = ONGLETS.find(o => o.id === onglet);
 
@@ -247,11 +262,29 @@ export default function MesOrdres({ onEditOrder }) {
     }
   };
 
-  const filtered = orders.filter(o =>
-    !search ||
+const filtered = orders.filter(o => {
+  // Recherche simple
+  if (search && !(
     (o.reference||"").toLowerCase().includes(search.toLowerCase()) ||
-    (o.beneName||"").toLowerCase().includes(search.toLowerCase())
-  );
+    (o.beneName||"").toLowerCase().includes(search.toLowerCase()) ||
+    (o.clientNom||"").toLowerCase().includes(search.toLowerCase())
+  )) return false;
+
+  // Critères avancés
+  if (criteres.reference    && !(o.reference||"").toLowerCase().includes(criteres.reference.toLowerCase())) return false;
+  if (criteres.donneur      && !(o.clientNom||"").toLowerCase().includes(criteres.donneur.toLowerCase())) return false;
+  if (criteres.beneficiaire && !(o.beneName||"").toLowerCase().includes(criteres.beneficiaire.toLowerCase())) return false;
+  if (criteres.devise       && (o.currency||"").toUpperCase() !== criteres.devise.toUpperCase()) return false;
+  if (criteres.dateDebut    && new Date(o.createdAt) < new Date(criteres.dateDebut)) return false;
+  if (criteres.dateFin      && new Date(o.createdAt) > new Date(criteres.dateFin+"T23:59:59")) return false;
+  if (criteres.valeurDebut  && o.valueDate && new Date(o.valueDate) < new Date(criteres.valeurDebut)) return false;
+  if (criteres.valeurFin    && o.valueDate && new Date(o.valueDate) > new Date(criteres.valeurFin+"T23:59:59")) return false;
+
+  return true;
+});
+
+const hasCriteres = Object.values(criteres).some(v => v !== "");
+const resetCriteres = () => setCriteres({ dateDebut:"", dateFin:"", valeurDebut:"", valeurFin:"", reference:"", donneur:"", beneficiaire:"", devise:"" });
 
   const canEdit   = (o) => o.status === "DRAFT" || o.status === "RETURNED";
   const canSubmit = (o) => o.status === "DRAFT" || o.status === "RETURNED";
@@ -281,33 +314,84 @@ export default function MesOrdres({ onEditOrder }) {
       {selected && <OrderDetail order={selected} onClose={() => setSelected(null)} />}
       {toDelete && <ConfirmDelete order={toDelete} onConfirm={handleDelete} onCancel={() => setToDelete(null)} />}
 
-      {/* Header */}
-      <div style={{ background:"rgba(5,12,26,.95)", backdropFilter:"blur(16px)", borderBottom:"1px solid rgba(255,255,255,.06)", padding:"0 28px", height:54, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:100 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-          <span style={{ fontSize:16 }}>📂</span>
-          <span style={{ fontSize:14, fontWeight:700, color:"#E2EAF2", fontFamily:"'Space Grotesk',sans-serif" }}>Mes Ordres</span>
+{/* Header */}
+<div style={{ background:"rgba(5,12,26,.95)", backdropFilter:"blur(16px)", borderBottom:"1px solid rgba(255,255,255,.06)", padding:"12px 28px", position:"sticky", top:0, zIndex:100 }}>
+  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: showCriteres ? 12 : 0 }}>
+    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+      <span style={{ fontSize:16 }}>📂</span>
+      <span style={{ fontSize:14, fontWeight:700, color:"#E2EAF2", fontFamily:"'Space Grotesk',sans-serif" }}>Mes Ordres</span>
+    </div>
+    <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+      <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Recherche rapide..."
+        style={{ background:"rgba(10,18,32,.8)", border:"1.5px solid #1D3250", borderRadius:9, padding:"6px 14px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none", width:220 }} />
+      <button onClick={() => setShowCriteres(v => !v)} style={{
+        padding:"6px 14px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer",
+        background: showCriteres || hasCriteres ? "rgba(6,182,212,.15)" : "rgba(30,41,59,.5)",
+        border: "1px solid " + (showCriteres || hasCriteres ? "rgba(6,182,212,.4)" : "#1D3250"),
+        color: showCriteres || hasCriteres ? "#06b6d4" : "#7A8BA0",
+      }}>
+        ⚙ Filtres {hasCriteres ? "●" : ""}
+      </button>
+      {hasCriteres && (
+        <button onClick={resetCriteres} style={{ padding:"6px 12px", borderRadius:8, fontSize:11, cursor:"pointer", background:"rgba(239,68,68,.08)", border:"1px solid rgba(239,68,68,.2)", color:"#ef4444" }}>
+          ✕ Reinitialiser
+        </button>
+      )}
+    </div>
+  </div>
+
+  {/* Bloc critères avancés */}
+  {showCriteres && (
+    <div style={{ background:"rgba(8,15,28,.9)", border:"1px solid rgba(6,182,212,.15)", borderRadius:10, padding:"14px 16px", marginTop:4 }}>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
+        <div>
+          <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Date saisie — Du</div>
+          <input type="date" value={criteres.dateDebut} onChange={e => setCrit("dateDebut", e.target.value)}
+            style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:11, color:"#C8D8EA", fontFamily:"monospace", outline:"none", colorScheme:"dark" }} />
         </div>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par reference ou beneficiaire..."
-          style={{ background:"rgba(10,18,32,.8)", border:"1.5px solid #1D3250", borderRadius:9, padding:"6px 14px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none", width:300 }} />
+        <div>
+          <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Date saisie — Au</div>
+          <input type="date" value={criteres.dateFin} onChange={e => setCrit("dateFin", e.target.value)}
+            style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:11, color:"#C8D8EA", fontFamily:"monospace", outline:"none", colorScheme:"dark" }} />
+        </div>
+        <div>
+          <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Date valeur — Du</div>
+          <input type="date" value={criteres.valeurDebut} onChange={e => setCrit("valeurDebut", e.target.value)}
+            style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:11, color:"#C8D8EA", fontFamily:"monospace", outline:"none", colorScheme:"dark" }} />
+        </div>
+        <div>
+          <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Date valeur — Au</div>
+          <input type="date" value={criteres.valeurFin} onChange={e => setCrit("valeurFin", e.target.value)}
+            style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:11, color:"#C8D8EA", fontFamily:"monospace", outline:"none", colorScheme:"dark" }} />
+        </div>
+        <div>
+          <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Reference</div>
+          <input value={criteres.reference} onChange={e => setCrit("reference", e.target.value)} placeholder="TRF-2026-..."
+            style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:11, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
+        </div>
+        <div>
+          <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Donneur d'ordre</div>
+          <input value={criteres.donneur} onChange={e => setCrit("donneur", e.target.value)} placeholder="Nom du client..."
+            style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:11, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
+        </div>
+        <div>
+          <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Beneficiaire</div>
+          <input value={criteres.beneficiaire} onChange={e => setCrit("beneficiaire", e.target.value)} placeholder="Nom beneficiaire..."
+            style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:11, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
+        </div>
+        <div>
+          <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Devise</div>
+          <select value={criteres.devise} onChange={e => setCrit("devise", e.target.value)}
+            style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:11, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }}>
+            <option value="">Toutes</option>
+            {["MAD","EUR","USD","GBP","CAD","CHF","AED"].map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
       </div>
-
-      <div style={{ maxWidth:1100, margin:"0 auto", padding:"24px 28px", animation:"fadeUp .4s ease forwards" }}>
-
-        {/* Onglets */}
-        <div style={{ display:"flex", gap:8, marginBottom:20, borderBottom:"1px solid rgba(255,255,255,.06)", paddingBottom:0 }}>
-          {ONGLETS.map(o => (
-            <button key={o.id} onClick={() => { setOnglet(o.id); setSearch(""); }}
-              style={{ padding:"8px 18px", borderRadius:"8px 8px 0 0", fontSize:12, fontWeight:700, cursor:"pointer", border:"none",
-                background: onglet===o.id ? "rgba(8,15,28,.9)" : "transparent",
-                color: onglet===o.id ? o.color : "#3E5470",
-                borderBottom: onglet===o.id ? "2px solid "+o.color : "2px solid transparent" }}>
-              {o.icon} {o.label}
-              {onglet===o.id && !loading && (
-                <span style={{ marginLeft:6, fontSize:10, padding:"1px 6px", borderRadius:10, background:o.color+"20", color:o.color }}>{filtered.length}</span>
-              )}
-            </button>
-          ))}
-        </div>
+      <div style={{ marginTop:8, fontSize:10, color:"#3E5470", textAlign:"right" }}>{filtered.length} ordre(s) correspondent aux criteres</div>
+    </div>
+  )}
+</div>
 
         {/* Contenu */}
         {loading ? (
