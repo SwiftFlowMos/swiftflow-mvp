@@ -189,14 +189,11 @@ console.log('useEffect bank config - user:', user?.login);
       `}</style>
       <div style={{ width:navOpen?240:64, flexShrink:0, background:"rgba(6,10,20,.98)", borderRight:"1px solid rgba(255,255,255,.06)", display:"flex", flexDirection:"column", transition:"width .25s ease", overflow:"hidden" }}>
         <div style={{ padding:"18px 16px 14px", borderBottom:"1px solid rgba(255,255,255,.05)", display:"flex", alignItems:"center", gap:10, minHeight:62 }}>
-          {user?.logo ? (
-  <img src={user.logo} alt="logo" style={{ width:36, height:36, borderRadius:10, objectFit:"contain", flexShrink:0 }} />
-) : (
-  {bankConfig?.logo ? (
-  <img src={bankConfig.logo} alt="logo" style={{ width:36, height:36, borderRadius:10, objectFit:"contain", flexShrink:0 }} />
-) : (
-  <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#0E6494,#0891b2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>⚡</div>
-)}
+          {bankConfig?.logo ? (
+            <img src={bankConfig.logo} alt="logo" style={{ width:36, height:36, borderRadius:10, objectFit:"contain", flexShrink:0 }} />
+          ) : (
+            <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#0E6494,#0891b2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>⚡</div>
+          )}
 )}
           {navOpen && <div style={{ animation:"fadeIn .2s ease" }}>
            <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:16, color:"#E2EAF2" }}>
