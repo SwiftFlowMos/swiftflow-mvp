@@ -143,6 +143,29 @@ export default function App() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [navOpen, setNavOpen]     = useState(true);
 
+  // Charger la config banque et appliquer les couleurs au démarrage
+useEffect(() => {
+  const applyBankConfig = async () => {
+    try {
+      const res = await fetch(`${API_URL}/bank-config`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.couleurs) {
+          const root = document.documentElement;
+          root.style.setProperty('--color-primaire',   data.couleurs.primaire   || '#0891b2');
+          root.style.setProperty('--color-secondaire', data.couleurs.secondaire || '#0e7490');
+          root.style.setProperty('--color-accent',     data.couleurs.accent     || '#06b6d4');
+          root.style.setProperty('--color-fond',       data.couleurs.fond       || '#050C1A');
+          root.style.setProperty('--color-texte',      data.couleurs.texte      || '#E2EAF2');
+        }
+      }
+    } catch(e) {
+      console.error('Erreur chargement config banque:', e);
+    }
+  };
+  applyBankConfig();
+}, []);
+
   if (!user) return <LoginScreen onLogin={u => { setUser(u); setActive(u.role==="ADMIN" ? null : MODULES.find(m=>m.roles.includes(u.role))?.id); }} />;
   if (user.role === "ADMIN" && showAdmin) return <AdminConsole onExit={() => setShowAdmin(false)} />;
 
