@@ -145,9 +145,12 @@ export default function App() {
 
   // Charger la config banque et appliquer les couleurs au démarrage
 useEffect(() => {
+  if (!user) return;
   const applyBankConfig = async () => {
     try {
-      const res = await fetch(`${API_URL}/bank-config`);
+      const res = await fetch(`${API_URL}/bank-config`, {
+        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('sf_token') },
+      });
       if (res.ok) {
         const data = await res.json();
         if (data.couleurs) {
