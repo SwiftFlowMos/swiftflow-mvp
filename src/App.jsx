@@ -168,8 +168,9 @@ useEffect(() => {
       console.error('Erreur chargement config banque:', e);
     }
   };
-  applyBankConfig();
-}, [user]);
+console.log('useEffect bank config - user:', user?.login);
+    applyBankConfig();
+  }, [user]);
 
   if (!user) return <LoginScreen onLogin={u => { setUser(u); setActive(u.role==="ADMIN" ? null : MODULES.find(m=>m.roles.includes(u.role))?.id); }} />;
   if (user.role === "ADMIN" && showAdmin) return <AdminConsole onExit={() => setShowAdmin(false)} />;
