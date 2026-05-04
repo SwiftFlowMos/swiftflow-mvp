@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import VisibiliteModule from "./VisibiliteModule.jsx";
+import { useState, useEffect, useRef } from "react";
+import { API_URL, getToken } from "../config.js";
 
 // ─────────────────────────────────────────────────────────
 // DONNÉES INITIALES
@@ -215,32 +217,68 @@ function SaveBtn({ onClick, saved }) {
 function IdentiteBank({ bank, setBank }) {
   const [local, setLocal] = useState(bank);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState(false);
   const fileRef = useRef();
-  const set = (f,v) => setLocal(p => ({ ...p, [f]:v }));
-  const setColor = (f,v) => setLocal(p => ({ ...p, couleurs:{ ...p.couleurs, [f]:v } }));
 
-  const handleSave = () => {
-    setBank({ ...local, applied: { ...local.couleurs } });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  // Charger depuis l'API au montage
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch(`${API_URL}/bank-config`, {
+          headers: { 'Authorization': 'Bearer ' + getToken() },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const config = {
+            nom:       data.nom || '',
+            bic:       data.bic || '',
+            codeBanque:data.codeBanque || '',
+            deviseRef: data.deviseRef || 'MAD',
+            logo:      data.logo || null,
+            couleurs:  data.couleurs || bank.couleurs,
+            applied:   data.couleurs || bank.applied,
+          };
+          setLocal(config);
+          setBank(config);
+        }
+      } catch(e) {
+        console.error('Erreur chargement bank config:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      const res = await fetch(`${API_URL}/bank-config`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + getToken(),
+        },
+        body: JSON.stringify({
+          nom:       local.nom,
+          bic:       local.bic,
+          codeBanque:local.codeBanque,
+          deviseRef: local.deviseRef,
+          logo:      local.logo,
+          couleurs:  local.couleurs,
+        }),
+      });
+      if (res.ok) {
+        setBank({ ...local, applied: { ...local.couleurs } });
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      } else {
+        alert('Erreur lors de la sauvegarde');
+      }
+    } catch(e) {
+      alert('Erreur de connexion');
+    }
   };
-
-  const handleLogo = e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => set("logo", ev.target.result);
-    reader.readAsDataURL(file);
-  };
-
-  const COLORS = [
-    { key:"primaire",   label:"Couleur primaire",   hint:"Boutons, liens actifs"       },
-    { key:"secondaire", label:"Couleur secondaire",  hint:"Hover, elements secondaires" },
-    { key:"accent",     label:"Couleur accent",      hint:"Badges, indicateurs"         },
-    { key:"fond",       label:"Couleur de fond",     hint:"Arriere-plan general"        },
-    { key:"texte",      label:"Couleur du texte",    hint:"Texte principal"             },
-  ];
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
