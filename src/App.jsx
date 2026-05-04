@@ -78,7 +78,7 @@ function LoginScreen({ onLogin, bankConfig }) {
       <div style={{ width:"100%", maxWidth:420, animation:"fadeUp .5s ease forwards" }}>
         <div style={{ textAlign:"center", marginBottom:36 }}>
          {bankConfig?.logo ? (
-  <img src={bankConfig.logo} alt="logo" style={{ width:160, height:90, borderRadius:16, objectFit:"contain", margin:"0 auto 16px", display:"block" }} />
+  <img src={bankConfig.logo} alt="logo" style={{ width:200, height:120, borderRadius:16, objectFit:"contain", margin:"0 auto 16px", display:"block" }} />
 ) : (
   <div style={{ width:64, height:64, borderRadius:16, background:"linear-gradient(135deg,#0E6494,#0891b2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:30, margin:"0 auto 16px", boxShadow:"0 0 40px rgba(14,100,148,.4)" }}>⚡</div>
 )}
