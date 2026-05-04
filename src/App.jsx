@@ -31,7 +31,7 @@ const MODULES = [
   { id:"referentiels", label:"Referentiels",           icon:"📋", color:"#6366F1", roles:["DIRECTION"],                                                                      component:ReferentielsModule },
 ];
 
-function LoginScreen({ onLogin }) {
+function LoginScreen({ onLogin, bankConfig }) {
   const [login, setLogin]     = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
@@ -77,8 +77,14 @@ function LoginScreen({ onLogin }) {
       `}</style>
       <div style={{ width:"100%", maxWidth:420, animation:"fadeUp .5s ease forwards" }}>
         <div style={{ textAlign:"center", marginBottom:36 }}>
-          <div style={{ width:64, height:64, borderRadius:16, background:"linear-gradient(135deg,#0E6494,#0891b2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:30, margin:"0 auto 16px", boxShadow:"0 0 40px rgba(14,100,148,.4)" }}>⚡</div>
-          <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:28, fontWeight:800, color:"#E2EAF2", letterSpacing:1 }}>SWIFT<span style={{ color:"#0EA5E9" }}>FLOW</span></div>
+         {bankConfig?.logo ? (
+  <img src={bankConfig.logo} alt="logo" style={{ width:64, height:64, borderRadius:16, objectFit:"contain", margin:"0 auto 16px", display:"block" }} />
+) : (
+  <div style={{ width:64, height:64, borderRadius:16, background:"linear-gradient(135deg,#0E6494,#0891b2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:30, margin:"0 auto 16px", boxShadow:"0 0 40px rgba(14,100,148,.4)" }}>⚡</div>
+)}
+        <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:28, fontWeight:800, color:"#E2EAF2", letterSpacing:1 }}>
+  {bankConfig?.nom || "SWIFT"}<span style={{ color:"#0EA5E9" }}>{bankConfig?.nom ? "" : "FLOW"}</span>
+</div>
           <div style={{ fontSize:11, color:"#3E5470", letterSpacing:"0.2em", textTransform:"uppercase", marginTop:4 }}>Gestion des Operations Internationales</div>
         </div>
         <div style={{ background:"rgba(8,15,28,.9)", border:"1px solid rgba(255,255,255,.08)", borderRadius:16, padding:32, backdropFilter:"blur(12px)", boxShadow:"0 30px 60px rgba(0,0,0,.5)" }}>
@@ -146,12 +152,11 @@ export default function App() {
 
   // Charger la config banque et appliquer les couleurs au démarrage
 useEffect(() => {
-  if (!user) return;
   const applyBankConfig = async () => {
     try {
-      const res = await fetch(`${API_URL}/bank-config`, {
-        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('sf_token') },
-      });
+  const token = localStorage.getItem('sf_token');
+const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+const res = await fetch(`${API_URL}/bank-config`, { headers });
       if (res.ok) {
         const data = await res.json();
         setBankConfig(data);
@@ -170,9 +175,9 @@ useEffect(() => {
   };
 console.log('useEffect bank config - user:', user?.login);
     applyBankConfig();
-  }, [user]);
+  }, []);
 
-  if (!user) return <LoginScreen onLogin={u => { setUser(u); setActive(u.role==="ADMIN" ? null : MODULES.find(m=>m.roles.includes(u.role))?.id); }} />;
+  if (!user) return <LoginScreen onLogin={u => { setUser(u); setActive(u.role==="ADMIN" ? null : MODULES.find(m=>m.roles.includes(u.role))?.id); }} bankConfig={bankConfig} />;
   if (user.role === "ADMIN" && showAdmin) return <AdminConsole onExit={() => setShowAdmin(false)} />;
 
   const accessibles = MODULES.filter(m => m.roles.includes(user.role));
