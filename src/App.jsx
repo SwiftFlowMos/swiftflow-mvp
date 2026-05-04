@@ -142,6 +142,7 @@ export default function App() {
   const [activeModule, setActive] = useState(null);
   const [showAdmin, setShowAdmin] = useState(false);
   const [navOpen, setNavOpen]     = useState(true);
+  const [bankConfig, setBankConfig] = useState(null);
 
   // Charger la config banque et appliquer les couleurs au démarrage
 useEffect(() => {
@@ -153,6 +154,7 @@ useEffect(() => {
       });
       if (res.ok) {
         const data = await res.json();
+        setBankConfig(data);
         if (data.couleurs) {
           const root = document.documentElement;
           root.style.setProperty('--color-primaire',   data.couleurs.primaire   || '#0891b2');
@@ -167,7 +169,7 @@ useEffect(() => {
     }
   };
   applyBankConfig();
-}, []);
+}, [user]);
 
   if (!user) return <LoginScreen onLogin={u => { setUser(u); setActive(u.role==="ADMIN" ? null : MODULES.find(m=>m.roles.includes(u.role))?.id); }} />;
   if (user.role === "ADMIN" && showAdmin) return <AdminConsole onExit={() => setShowAdmin(false)} />;
@@ -186,9 +188,19 @@ useEffect(() => {
       `}</style>
       <div style={{ width:navOpen?240:64, flexShrink:0, background:"rgba(6,10,20,.98)", borderRight:"1px solid rgba(255,255,255,.06)", display:"flex", flexDirection:"column", transition:"width .25s ease", overflow:"hidden" }}>
         <div style={{ padding:"18px 16px 14px", borderBottom:"1px solid rgba(255,255,255,.05)", display:"flex", alignItems:"center", gap:10, minHeight:62 }}>
-          <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#0E6494,#0891b2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>⚡</div>
+          {user?.logo ? (
+  <img src={user.logo} alt="logo" style={{ width:36, height:36, borderRadius:10, objectFit:"contain", flexShrink:0 }} />
+) : (
+  {bankConfig?.logo ? (
+  <img src={bankConfig.logo} alt="logo" style={{ width:36, height:36, borderRadius:10, objectFit:"contain", flexShrink:0 }} />
+) : (
+  <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#0E6494,#0891b2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>⚡</div>
+)}
+)}
           {navOpen && <div style={{ animation:"fadeIn .2s ease" }}>
-            <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:16, color:"#E2EAF2" }}>SWIFT<span style={{ color:"#0EA5E9" }}>FLOW</span></div>
+           <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:16, color:"#E2EAF2" }}>
+  {bankConfig?.nom || "SWIFT"}<span style={{ color:"#0EA5E9" }}>{bankConfig?.nom ? "" : "FLOW"}</span>
+</div>
             <div style={{ fontSize:9, color:"#2A4060", letterSpacing:"0.18em", textTransform:"uppercase" }}>MVP Demo</div>
           </div>}
         </div>
