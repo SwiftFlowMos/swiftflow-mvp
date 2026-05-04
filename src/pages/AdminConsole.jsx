@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import VisibiliteModule from "./VisibiliteModule.jsx";
-import { useState, useEffect, useRef } from "react";
 import { API_URL, getToken } from "../config.js";
+import VisibiliteModule from "./VisibiliteModule.jsx";
 
 // ─────────────────────────────────────────────────────────
 // DONNÉES INITIALES
