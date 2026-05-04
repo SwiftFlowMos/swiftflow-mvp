@@ -219,7 +219,13 @@ function IdentiteBank({ bank, setBank }) {
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState(false);
   const fileRef = useRef();
-
+const handleLogo = e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => set("logo", ev.target.result);
+  reader.readAsDataURL(file);
+};
   // Charger depuis l'API au montage
   useEffect(() => {
     const load = async () => {
