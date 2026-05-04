@@ -226,6 +226,14 @@ const handleLogo = e => {
   reader.onload = ev => set("logo", ev.target.result);
   reader.readAsDataURL(file);
 };
+
+  const COLORS = [
+  { key:"primaire",   label:"Couleur primaire",   hint:"Boutons, liens actifs"       },
+  { key:"secondaire", label:"Couleur secondaire",  hint:"Hover, elements secondaires" },
+  { key:"accent",     label:"Couleur accent",      hint:"Badges, indicateurs"         },
+  { key:"fond",       label:"Couleur de fond",     hint:"Arriere-plan general"        },
+  { key:"texte",      label:"Couleur du texte",    hint:"Texte principal"             },
+];
   // Charger depuis l'API au montage
   useEffect(() => {
     const load = async () => {
