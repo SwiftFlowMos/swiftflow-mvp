@@ -632,6 +632,57 @@ function Referentiels({ refs, setRefs }) {
 // ─────────────────────────────────────────────────────────
 function MoteurWorkflow({ steps, setSteps }) {
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Charger les étapes depuis l'API
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch(`${API_URL}/workflow/steps`, {
+          headers: { 'Authorization': 'Bearer ' + getToken() },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setSteps(data);
+        }
+      } catch(e) {
+        console.error('Erreur chargement workflow:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  // Sauvegarder une étape
+  const saveStep = async (step) => {
+    try {
+      const res = await fetch(`${API_URL}/workflow/steps/${step.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + getToken(),
+        },
+        body: JSON.stringify({
+          isActive:       step.isActive,
+          routingPositif: step.routingPositif,
+          routingNegatif: step.routingNegatif,
+          routingAlerte:  step.routingAlerte,
+          condAlways:     step.condAlways,
+          condAmountMin:  step.condAmountMin,
+          condAmountMax:  step.condAmountMax,
+        }),
+      });
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      } else {
+        alert('Erreur lors de la sauvegarde');
+      }
+    } catch(e) {
+      alert('Erreur de connexion');
+    }
+  };
   const TYPES = { AUTO:"🤖 Auto", MANUEL:"👤 Manuel", SEMI_AUTO:"⚡ Semi-auto" };
   const ROUTING_OPTS = ["NEXT","PREVIOUS","BLOCK","ESCALADE","MANUAL"];
 
