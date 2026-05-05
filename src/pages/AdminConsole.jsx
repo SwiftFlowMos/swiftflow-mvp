@@ -686,9 +686,12 @@ function MoteurWorkflow({ steps, setSteps }) {
   const TYPES = { AUTO:"🤖 Auto", MANUEL:"👤 Manuel", SEMI_AUTO:"⚡ Semi-auto" };
   const ROUTING_OPTS = ["NEXT","PREVIOUS","BLOCK","ESCALADE","MANUAL"];
 
-  const toggleStep = idx => {
-    const u=[...steps]; u[idx]={...u[idx],actif:!u[idx].actif}; setSteps(u);
-  };
+const toggleStep = async (idx) => {
+  const u=[...steps];
+  u[idx]={...u[idx], isActive:!u[idx].isActive, actif:!u[idx].isActive};
+  setSteps(u);
+  await saveStep(u[idx]);
+};
   const setRouting = (idx,res,val) => {
     const u=[...steps]; u[idx]={...u[idx],routing:{...u[idx].routing,[res]:val}}; setSteps(u);
   };
@@ -699,7 +702,11 @@ function MoteurWorkflow({ steps, setSteps }) {
         <h2 style={{ fontSize:16, fontWeight:700, color:"#E2EAF2", fontFamily:"'Space Grotesk',sans-serif" }}>Moteur Workflow</h2>
         <div style={{ display:"flex", gap:8 }}>
           <button style={{ padding:"7px 14px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer", background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.25)", color:"#06b6d4" }}>+ Ajouter etape</button>
-          <SaveBtn onClick={()=>{setSaved(true);setTimeout(()=>setSaved(false),2000);}} saved={saved} />
+          <SaveBtn onClick={async () => {
+  for (const step of steps) {
+    await saveStep(step);
+  }
+}} saved={saved} />
         </div>
       </div>
 
