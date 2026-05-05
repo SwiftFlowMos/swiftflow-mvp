@@ -752,7 +752,7 @@ const toggleStep = async (idx) => {
                   ))}
                 </div>
               </div>
-              <Toggle checked={step.actif} onChange={()=>toggleStep(idx)} />
+              <Toggle checked={step.isActive} onChange={()=>toggleStep(idx)} />
             </div>
           </Card>
         ))}
