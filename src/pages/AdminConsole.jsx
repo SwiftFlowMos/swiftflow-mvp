@@ -926,7 +926,7 @@ export default function AdminConsole({ onExit }) {
     }
   };
   loadSteps();
-}, []);
+}, [activeMenu]);
   const [params, setParams] = useState(INIT_PARAMS);
 
   const activeM = MENUS.find(m=>m.id===activeMenu);
