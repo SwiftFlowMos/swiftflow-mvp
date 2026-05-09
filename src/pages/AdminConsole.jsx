@@ -626,7 +626,156 @@ function Referentiels({ refs, setRefs }) {
     </div>
   );
 }
+function StepModal({ step, onSave, onClose }) {
+  const [local, setLocal] = useState({ ...step });
+  const [onglet, setOnglet] = useState("config");
+  const set = (k, v) => setLocal(p => ({ ...p, [k]: v }));
 
+  const ROUTING_OPTS = ["NEXT","PREVIOUS","BLOCK","APPROVED","ESCALADE","MANUAL"];
+  const ROLES = ["CONFORMITE","VALIDEUR_N1","VALIDEUR_N2","REGLEMENTAIRE","DIRECTION"];
+  const SYSTEMES = ["PROVISION","AML","FIRCOSOFT","SWIFT","MUREX","FLEXCUBE"];
+  const TIMEOUT_ACTIONS = ["ALERTE","ESCALADE","BLOCK","NEXT"];
+
+  const inp = (label, field, type="text", opts=null) => (
+    <div style={{ marginBottom:12 }}>
+      <div style={{ fontSize:10, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>{label}</div>
+      {opts ? (
+        <select value={local[field]||""} onChange={e => set(field, e.target.value)}
+          style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"7px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }}>
+          <option value="">-- Selectionner --</option>
+          {opts.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+      ) : (
+        <input type={type} value={local[field]||""} onChange={e => set(field, type==="number" ? parseFloat(e.target.value)||0 : e.target.value)}
+          style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"7px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
+      )}
+    </div>
+  );
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:9999, background:"rgba(4,8,18,.88)", backdropFilter:"blur(10px)", display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+      <div style={{ width:"100%", maxWidth:600, background:"#0C1628", border:"1px solid rgba(6,182,212,.2)", borderRadius:16, overflow:"hidden", boxShadow:"0 40px 80px rgba(0,0,0,.7)" }}>
+
+        {/* Header */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 20px", borderBottom:"1px solid rgba(255,255,255,.06)", background:"rgba(6,182,212,.03)" }}>
+          <div style={{ fontSize:14, fontWeight:700, color:"#E2EAF2" }}>
+            Configuration — Etape {local.ordre} : {local.nom}
+          </div>
+          <button onClick={onClose} style={{ background:"none", border:"none", color:"#475569", cursor:"pointer", fontSize:20 }}>x</button>
+        </div>
+
+        {/* Onglets */}
+        <div style={{ display:"flex", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
+          {[["config","Configuration"],["conditions","Conditions"],["routage","Routage"]].map(([k,l]) => (
+            <button key={k} onClick={() => setOnglet(k)} style={{
+              padding:"10px 20px", fontSize:12, fontWeight:700, cursor:"pointer", border:"none",
+              background: onglet===k ? "rgba(6,182,212,.08)" : "transparent",
+              color: onglet===k ? "#06b6d4" : "#3E5470",
+              borderBottom: onglet===k ? "2px solid #06b6d4" : "2px solid transparent",
+            }}>{l}</button>
+          ))}
+        </div>
+
+        <div style={{ padding:20, maxHeight:400, overflowY:"auto" }}>
+
+          {/* ONGLET CONFIGURATION */}
+          {onglet === "config" && (
+            <div>
+              {inp("Nom de l etape", "nom")}
+              {inp("Type", "type", "text", ["AUTO","MANUEL","SEMI_AUTO"])}
+              {(local.type === "MANUEL" || local.type === "SEMI_AUTO") && inp("Role requis", "role", "text", ROLES)}
+              {(local.type === "AUTO" || local.type === "SEMI_AUTO") && inp("Systeme tiers", "systemeTiers", "text", SYSTEMES)}
+              {local.type === "MANUEL" && inp("Timeout (heures)", "timeoutHeures", "number")}
+              {(local.type === "AUTO" || local.type === "SEMI_AUTO") && (
+                <>
+                  {inp("Timeout (ms)", "timeoutMs", "number")}
+                  {inp("Retry max", "retryMax", "number")}
+                </>
+              )}
+              {inp("Action si timeout", "timeoutAction", "text", TIMEOUT_ACTIONS)}
+              {inp("Action de repli", "fallbackAction", "text", TIMEOUT_ACTIONS)}
+            </div>
+          )}
+
+          {/* ONGLET CONDITIONS */}
+          {onglet === "conditions" && (
+            <div>
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, padding:"10px 14px", background:"rgba(6,182,212,.05)", borderRadius:8, border:"1px solid rgba(6,182,212,.15)" }}>
+                <div style={{ fontSize:12, color:"#C8D8EA", flex:1 }}>Toujours declencher cette etape</div>
+                <div onClick={() => set("condAlways", !local.condAlways)}
+                  style={{ width:36, height:20, borderRadius:10, cursor:"pointer", position:"relative",
+                    background:local.condAlways?"#0891b2":"#1e293b", border:"1px solid "+(local.condAlways?"#06b6d4":"#334155"), transition:"all .25s" }}>
+                  <div style={{ position:"absolute", top:3, left:local.condAlways?18:3, width:12, height:12, borderRadius:"50%",
+                    background:local.condAlways?"#fff":"#475569", transition:"left .25s" }} />
+                </div>
+              </div>
+              {!local.condAlways && (
+                <>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                    <div>
+                      <div style={{ fontSize:10, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Montant minimum</div>
+                      <input type="number" value={local.condAmountMin||0} onChange={e => set("condAmountMin", parseFloat(e.target.value)||0)}
+                        style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"7px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize:10, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Montant maximum (0 = illimite)</div>
+                      <input type="number" value={local.condAmountMax||0} onChange={e => set("condAmountMax", parseFloat(e.target.value)||0)}
+                        style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"7px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
+                    </div>
+                  </div>
+                  <div style={{ marginTop:12 }}>
+                    <div style={{ fontSize:10, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Devises concernees (vide = toutes)</div>
+                    <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                      {["MAD","EUR","USD","GBP","CHF","CAD","AED"].map(d => (
+                        <div key={d} onClick={() => {
+                          const curr = local.condCurrencies || [];
+                          set("condCurrencies", curr.includes(d) ? curr.filter(c=>c!==d) : [...curr, d]);
+                        }} style={{
+                          padding:"4px 12px", borderRadius:20, fontSize:11, fontWeight:700, cursor:"pointer",
+                          background: (local.condCurrencies||[]).includes(d) ? "rgba(6,182,212,.15)" : "rgba(30,41,59,.5)",
+                          border: "1px solid " + ((local.condCurrencies||[]).includes(d) ? "rgba(6,182,212,.4)" : "#1D3250"),
+                          color: (local.condCurrencies||[]).includes(d) ? "#06b6d4" : "#475569",
+                        }}>{d}</div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ONGLET ROUTAGE */}
+          {onglet === "routage" && (
+            <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+              {[
+                ["POSITIF",  "Resultat positif / Approbation", "#10b981", local.routingPositif],
+                ["NEGATIF",  "Resultat negatif / Rejet",       "#ef4444", local.routingNegatif],
+                ["ALERTE",   "Alerte / Anomalie detectee",     "#f59e0b", local.routingAlerte],
+              ].map(([key, label, color, routing]) => (
+                <div key={key} style={{ padding:"12px 14px", background:"rgba(8,15,28,.7)", borderRadius:10, border:"1px solid rgba(255,255,255,.06)" }}>
+                  <div style={{ fontSize:11, fontWeight:700, color, marginBottom:8 }}>{key} — {label}</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                    <span style={{ fontSize:11, color:"#475569" }}>Action :</span>
+                    <select value={routing?.action||"NEXT"} onChange={e => set("routing"+key.charAt(0)+key.slice(1).toLowerCase(), { action: e.target.value })}
+                      style={{ background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }}>
+                      {["NEXT","PREVIOUS","BLOCK","APPROVED","ESCALADE","MANUAL"].map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{ display:"flex", justifyContent:"flex-end", gap:10, padding:"14px 20px", borderTop:"1px solid rgba(255,255,255,.06)" }}>
+          <button onClick={onClose} style={{ padding:"8px 18px", borderRadius:8, fontSize:12, cursor:"pointer", background:"rgba(30,41,59,.5)", border:"1px solid #1D3250", color:"#7A8BA0" }}>Annuler</button>
+          <button onClick={() => onSave(local)} style={{ padding:"8px 20px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer", background:"linear-gradient(135deg,#0891b2,#0e7490)", border:"none", color:"#fff" }}>Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 // ─────────────────────────────────────────────────────────
 // 3. MOTEUR WORKFLOW
 // ─────────────────────────────────────────────────────────
@@ -664,6 +813,49 @@ function MoteurWorkflow({ steps, setSteps }) {
       alert('Erreur de connexion');
     }
   };
+  const [editing, setEditing] = useState(null);
+
+  const saveEditedStep = async (updatedStep) => {
+    try {
+      const res = await fetch(`${API_URL}/workflow/steps/${updatedStep.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + getToken(),
+        },
+        body: JSON.stringify({
+          nom:            updatedStep.nom,
+          type:           updatedStep.type,
+          role:           updatedStep.role,
+          systemeTiers:   updatedStep.systemeTiers,
+          timeoutHeures:  updatedStep.timeoutHeures,
+          timeoutMs:      updatedStep.timeoutMs,
+          retryMax:       updatedStep.retryMax,
+          timeoutAction:  updatedStep.timeoutAction,
+          fallbackAction: updatedStep.fallbackAction,
+          isActive:       updatedStep.isActive,
+          condAlways:     updatedStep.condAlways,
+          condAmountMin:  updatedStep.condAmountMin,
+          condAmountMax:  updatedStep.condAmountMax,
+          condCurrencies: updatedStep.condCurrencies,
+          routingPositif: updatedStep.routingPositif,
+          routingNegatif: updatedStep.routingNegatif,
+          routingAlerte:  updatedStep.routingAlerte,
+        }),
+      });
+      if (res.ok) {
+        const updated = steps.map(s => s.id === updatedStep.id ? updatedStep : s);
+        setSteps(updated);
+        setEditing(null);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      } else {
+        alert('Erreur lors de la sauvegarde');
+      }
+    } catch(e) {
+      alert('Erreur de connexion');
+    }
+  };
   const TYPES = { AUTO:"🤖 Auto", MANUEL:"👤 Manuel", SEMI_AUTO:"⚡ Semi-auto" };
   const ROUTING_OPTS = ["NEXT","PREVIOUS","BLOCK","ESCALADE","MANUAL"];
 
@@ -677,7 +869,9 @@ const toggleStep = async (idx) => {
     const u=[...steps]; u[idx]={...u[idx],routing:{...u[idx].routing,[res]:val}}; setSteps(u);
   };
 
+  
   return (
+    {editing && <StepModal step={editing} onSave={saveEditedStep} onClose={() => setEditing(null)} />}
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
         <h2 style={{ fontSize:16, fontWeight:700, color:"#E2EAF2", fontFamily:"'Space Grotesk',sans-serif" }}>Moteur Workflow</h2>
@@ -733,7 +927,12 @@ const toggleStep = async (idx) => {
                   ))}
                 </div>
               </div>
-              <Toggle checked={step.isActive === true || step.isActive === "true"} onChange={()=>toggleStep(idx)} />
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+  <button onClick={() => setEditing(step)} style={{ padding:"4px 12px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer", background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.2)", color:"#06b6d4" }}>
+    Configurer
+  </button>
+  <Toggle checked={step.isActive||step.actif} onChange={()=>toggleStep(idx)} />
+</div>
             </div>
           </Card>
         ))}
