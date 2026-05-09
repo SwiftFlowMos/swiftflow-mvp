@@ -938,8 +938,9 @@ const toggleStep = async (idx) => {
             </div>
           </Card>
         ))}
-      </div>
+     </div>
     </div>
+  </div>
   );
 }
 
