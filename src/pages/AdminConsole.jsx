@@ -695,7 +695,7 @@ const toggleStep = async (idx) => {
       <div style={{ display:"flex", alignItems:"center", flexWrap:"wrap", gap:0, padding:"10px 14px", background:"rgba(8,15,28,.7)", border:"1px solid rgba(255,255,255,.06)", borderRadius:10, marginBottom:16 }}>
         <span style={{ fontSize:10, color:"#3E5470", marginRight:8 }}>FLUX :</span>
         <span style={{ fontSize:10, padding:"3px 9px", borderRadius:20, background:"rgba(16,185,129,.1)", border:"1px solid rgba(16,185,129,.25)", color:"#10b981", fontWeight:700 }}>SAISIE</span>
-        {steps.filter(s=>s.actif).map((s,i) => (
+        {steps.filter(s=>s.isActive||s.actif).map((s,i) => (
           <span key={s.id} style={{ display:"flex", alignItems:"center" }}>
             <span style={{ width:16, height:1, background:"rgba(30,58,138,.4)", display:"inline-block" }} />
             <span style={{ fontSize:10, padding:"3px 9px", borderRadius:20, background:"rgba(6,182,212,.1)", border:"1px solid rgba(6,182,212,.25)", color:"#06b6d4", fontWeight:700 }}>{s.nom}</span>
