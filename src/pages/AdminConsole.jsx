@@ -914,11 +914,13 @@ export default function AdminConsole({ onExit }) {
   useEffect(() => {
   const loadSteps = async () => {
     try {
+      console.log('Chargement steps, activeMenu:', activeMenu);
       const res = await fetch(`${API_URL}/workflow/steps`, {
         headers: { 'Authorization': 'Bearer ' + getToken() },
       });
       if (res.ok) {
         const data = await res.json();
+        console.log('Steps chargées:', data.map(s => s.nom + ':' + s.isActive));
         setSteps(data);
       }
     } catch(e) {
