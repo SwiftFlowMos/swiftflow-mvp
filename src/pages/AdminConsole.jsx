@@ -634,26 +634,7 @@ function MoteurWorkflow({ steps, setSteps }) {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Charger les étapes depuis l'API
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch(`${API_URL}/workflow/steps`, {
-          headers: { 'Authorization': 'Bearer ' + getToken() },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setSteps(data);
-        }
-      } catch(e) {
-        console.error('Erreur chargement workflow:', e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
-
+  
   // Sauvegarder une étape
   const saveStep = async (step) => {
     try {
@@ -929,7 +910,23 @@ export default function AdminConsole({ onExit }) {
   const [activeMenu, setActiveMenu] = useState("identite");
   const [bank, setBank] = useState(INIT_BANK);
   const [refs, setRefs] = useState(INIT_REFS);
-  const [steps, setSteps] = useState(INIT_WORKFLOW);
+  const [steps, setSteps] = useState([]);
+  useEffect(() => {
+  const loadSteps = async () => {
+    try {
+      const res = await fetch(`${API_URL}/workflow/steps`, {
+        headers: { 'Authorization': 'Bearer ' + getToken() },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSteps(data);
+      }
+    } catch(e) {
+      console.error('Erreur chargement workflow:', e);
+    }
+  };
+  loadSteps();
+}, []);
   const [params, setParams] = useState(INIT_PARAMS);
 
   const activeM = MENUS.find(m=>m.id===activeMenu);
