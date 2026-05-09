@@ -728,7 +728,7 @@ const toggleStep = async (idx) => {
 
       <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
         {steps.map((step, idx) => (
-          <Card key={step.id} style={{ opacity:step.actif?1:.55, borderLeft:"3px solid "+(step.actif?"#06b6d4":"#1D3250") }}>
+          <Card key={step.id} style={{ opacity:(step.isActive||step.actif)?1:.55, borderLeft:"3px solid "+((step.isActive||step.actif)?"#06b6d4":"#1D3250") }}>
             <div style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", gap:14, alignItems:"start" }}>
               <div style={{ width:28, height:28, borderRadius:"50%", background:"rgba(6,182,212,.15)", border:"1.5px solid rgba(6,182,212,.35)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:800, color:"#06b6d4", flexShrink:0 }}>{step.ordre}</div>
               <div>
