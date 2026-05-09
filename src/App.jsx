@@ -192,16 +192,15 @@ console.log('useEffect bank config - user:', user?.login);
         @keyframes fadeIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
       `}</style>
-      <div style={{ width:navOpen?240:64, flexShrink:0, background:"rgba(6,10,20,.98)", borderRight:"1px solid rgba(255,255,255,.06)", display:"flex", flexDirection:"column", transition:"width .25s ease", overflow:"hidden" }}>
+     <div style={{ width:navOpen?240:64, flexShrink:0, background:"rgba(6,10,20,.98)", borderRight:"1px solid rgba(255,255,255,.06)", display:"flex", flexDirection:"column", transition:"width .25s ease", overflow:"hidden" }}>
         <div style={{ padding:"18px 16px 14px", borderBottom:"1px solid rgba(255,255,255,.05)", display:"flex", alignItems:"center", gap:10, minHeight:62 }}>
           {bankConfig?.logo ? (
             <img src={bankConfig.logo} alt="logo" style={{ width:36, height:36, borderRadius:10, objectFit:"contain", flexShrink:0 }} />
           ) : (
             <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#0E6494,#0891b2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, flexShrink:0 }}>⚡</div>
           )}
-)}
           {navOpen && <div style={{ animation:"fadeIn .2s ease" }}>
-           <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:16, color:"#E2EAF2" }}>
+      <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:800, fontSize:16, color:"#E2EAF2" }}>
   {bankConfig?.nom || "SWIFT"}<span style={{ color:"#0EA5E9" }}>{bankConfig?.nom ? "" : "FLOW"}</span>
 </div>
             <div style={{ fontSize:9, color:"#2A4060", letterSpacing:"0.18em", textTransform:"uppercase" }}>MVP Demo</div>
