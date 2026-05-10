@@ -903,10 +903,34 @@ const toggleStep = async (idx) => {
         </span>
       </div>
 
-      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+<div style={{ display:"flex", flexDirection:"column", gap:10 }}>
         {steps.map((step, idx) => (
-          <Card key={step.id} style={{ opacity:(step.isActive||step.actif)?1:.55, borderLeft:"3px solid "+((step.isActive||step.actif)?"#06b6d4":"#1D3250") }}>
-            <div style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", gap:14, alignItems:"start" }}>
+          <Card key={step.id}
+            draggable
+            onDragStart={e => e.dataTransfer.setData("idx", idx)}
+            onDragOver={e => e.preventDefault()}
+            onDrop={async e => {
+              e.preventDefault();
+              const from = parseInt(e.dataTransfer.getData("idx"));
+              const to = idx;
+              if (from === to) return;
+              const reordered = [...steps];
+              const [moved] = reordered.splice(from, 1);
+              reordered.splice(to, 0, moved);
+              const updated = reordered.map((s, i) => ({ ...s, ordre: i + 1 }));
+              setSteps(updated);
+              // Sauvegarder le nouvel ordre
+              for (const s of updated) {
+                await fetch(`${API_URL}/workflow/steps/${s.id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+                  body: JSON.stringify({ ordre: s.ordre }),
+                });
+              }
+            }}
+            style={{ opacity:(step.isActive||step.actif)?1:.55, borderLeft:"3px solid "+((step.isActive||step.actif)?"#06b6d4":"#1D3250"), cursor:"grab" }}>
+            <div style={{ display:"grid", gridTemplateColumns:"auto auto 1fr auto", gap:14, alignItems:"start" }}>
+              <div style={{ fontSize:16, color:"#3E5470", cursor:"grab", paddingTop:4 }}>⠿</div>
               <div style={{ width:28, height:28, borderRadius:"50%", background:"rgba(6,182,212,.15)", border:"1.5px solid rgba(6,182,212,.35)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:800, color:"#06b6d4", flexShrink:0 }}>{step.ordre}</div>
               <div>
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
