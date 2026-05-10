@@ -175,8 +175,8 @@ function Toggle({ checked, onChange }) {
   );
 }
 
-function Card({ children, style={} }) {
-  return <div style={{ background:"rgba(8,15,28,.8)", border:"1px solid rgba(255,255,255,.07)", borderRadius:12, padding:20, ...style }}>{children}</div>;
+function Card({ children, style={}, ...props }) {
+  return <div style={{ background:"rgba(8,15,28,.8)", border:"1px solid rgba(255,255,255,.07)", borderRadius:12, padding:20, ...style }} {...props}>{children}</div>;
 }
 
 function SectionTitle({ children }) {
