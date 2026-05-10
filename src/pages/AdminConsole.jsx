@@ -146,6 +146,7 @@ const MENUS = [
   { id:"workflow",    label:"Moteur Workflow",          icon:"🔀", color:"#8B5CF6" },
   { id:"parametrage", label:"Parametrage general",     icon:"⚙",  color:"#F59E0B" },
   { id:"champs",      label:"Parametrage des champs",  icon:"👁",  color:"#EC4899" },
+  { id:"adaptateurs", label:"Systemes Tiers", icon:"🔌", color:"#10B981" },
 ];
 
 const REF_TILES = [
@@ -1129,6 +1130,259 @@ function ParamGeneral({ params, setParams }) {
   );
 }
 
+function SystemAdapters() {
+  const [adapters, setAdapters] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch(`${API_URL}/system-adapters`, {
+          headers: { 'Authorization': 'Bearer ' + getToken() },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setAdapters(data);
+        }
+      } catch(e) {
+        console.error('Erreur chargement adaptateurs:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const saveAdapter = async (adapter) => {
+    try {
+      const res = await fetch(`${API_URL}/system-adapters/${adapter.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + getToken(),
+        },
+        body: JSON.stringify(adapter),
+      });
+      if (res.ok) {
+        setAdapters(prev => prev.map(a => a.id === adapter.id ? adapter : a));
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+        setSelected(null);
+      } else {
+        alert('Erreur lors de la sauvegarde');
+      }
+    } catch(e) {
+      alert('Erreur de connexion');
+    }
+  };
+
+  const MODES = ["REST","QUEUE","FILE","DB"];
+  const AUTH_TYPES = ["NONE","BEARER","API_KEY","BASIC","MTLS"];
+  const RESULTATS = ["POSITIF","NEGATIF","ALERTE"];
+  const ICONS = { PROVISION:"🏦", AML:"🛡", FIRCOSOFT:"⚠", SWIFT:"🌐", MUREX:"📊", FLEXCUBE:"🏛", AMPLITUDE:"📈", FTI:"📁" };
+
+  if (loading) return <div style={{ padding:40, textAlign:"center", color:"#3E5470" }}>Chargement...</div>;
+
+  return (
+    <div style={{ padding:24 }}>
+      {saved && (
+        <div style={{ position:"fixed", top:20, right:20, zIndex:9999, padding:"12px 20px", borderRadius:10, fontSize:12, fontWeight:700, background:"rgba(16,185,129,.15)", border:"1px solid rgba(16,185,129,.4)", color:"#10b981" }}>
+          Sauvegarde reussie
+        </div>
+      )}
+
+      {/* Modale de configuration */}
+      {selected && (
+        <div style={{ position:"fixed", inset:0, zIndex:9000, background:"rgba(4,8,18,.88)", backdropFilter:"blur(10px)", display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+          <div style={{ width:"100%", maxWidth:640, background:"#0C1628", border:"1px solid rgba(6,182,212,.2)", borderRadius:16, overflow:"hidden", boxShadow:"0 40px 80px rgba(0,0,0,.7)" }}>
+            
+            {/* Header */}
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 20px", borderBottom:"1px solid rgba(255,255,255,.06)", background:"rgba(6,182,212,.03)" }}>
+              <div style={{ fontSize:14, fontWeight:700, color:"#E2EAF2" }}>
+                {ICONS[selected.code] || "🔌"} {selected.nom}
+              </div>
+              <button onClick={() => setSelected(null)} style={{ background:"none", border:"none", color:"#475569", cursor:"pointer", fontSize:20 }}>x</button>
+            </div>
+
+            <div style={{ padding:20, maxHeight:500, overflowY:"auto" }}>
+              
+              {/* Mode bouchon */}
+              <div style={{ padding:"12px 14px", background: selected.modeBouchon ? "rgba(245,158,11,.07)" : "rgba(16,185,129,.07)", border:"1px solid "+(selected.modeBouchon ? "rgba(245,158,11,.25)" : "rgba(16,185,129,.25)"), borderRadius:10, marginBottom:16 }}>
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: selected.modeBouchon ? 12 : 0 }}>
+                  <div>
+                    <div style={{ fontSize:12, fontWeight:700, color: selected.modeBouchon ? "#f59e0b" : "#10b981" }}>
+                      {selected.modeBouchon ? "Mode Bouchon actif" : "Mode Reel actif"}
+                    </div>
+                    <div style={{ fontSize:10, color:"#3E5470", marginTop:2 }}>
+                      {selected.modeBouchon ? "Simule les appels — aucun vrai appel effectue" : "Appels reels vers le systeme tiers"}
+                    </div>
+                  </div>
+                  <div onClick={() => setSelected(p => ({ ...p, modeBouchon: !p.modeBouchon }))}
+                    style={{ width:36, height:20, borderRadius:10, cursor:"pointer", position:"relative", flexShrink:0,
+                      background:selected.modeBouchon?"#f59e0b":"#0891b2", border:"1px solid "+(selected.modeBouchon?"#f59e0b":"#06b6d4"), transition:"all .25s" }}>
+                    <div style={{ position:"absolute", top:3, left:selected.modeBouchon?18:3, width:12, height:12, borderRadius:"50%", background:"#fff", transition:"left .25s" }} />
+                  </div>
+                </div>
+
+                {selected.modeBouchon && (
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                    <div>
+                      <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Resultat simule</div>
+                      <select value={selected.bouchonResultat||"POSITIF"} onChange={e => setSelected(p => ({ ...p, bouchonResultat: e.target.value }))}
+                        style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }}>
+                        {RESULTATS.map(r => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Delai simule (ms)</div>
+                      <input type="number" value={selected.bouchonDelaiMs||1000} onChange={e => setSelected(p => ({ ...p, bouchonDelaiMs: parseInt(e.target.value)||1000 }))}
+                        style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
+                    </div>
+                    <div style={{ gridColumn:"span 2" }}>
+                      <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Message simule</div>
+                      <input value={selected.bouchonMessage||""} onChange={e => setSelected(p => ({ ...p, bouchonMessage: e.target.value }))}
+                        style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Configuration connexion (mode réel) */}
+              {!selected.modeBouchon && (
+                <div>
+                  <div style={{ fontSize:10, color:"#06b6d4", textTransform:"uppercase", letterSpacing:".12em", marginBottom:12 }}>Configuration connexion</div>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:12 }}>
+                    <div>
+                      <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Mode appel</div>
+                      <select value={selected.modeAppel||"REST"} onChange={e => setSelected(p => ({ ...p, modeAppel: e.target.value }))}
+                        style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }}>
+                        {MODES.map(m => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Authentification</div>
+                      <select value={selected.authType||"NONE"} onChange={e => setSelected(p => ({ ...p, authType: e.target.value }))}
+                        style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }}>
+                        {AUTH_TYPES.map(a => <option key={a} value={a}>{a}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{ marginBottom:10 }}>
+                    <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>URL Endpoint</div>
+                    <input value={selected.urlEndpoint||""} onChange={e => setSelected(p => ({ ...p, urlEndpoint: e.target.value }))} placeholder="https://..."
+                      style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
+                  </div>
+                  {selected.authType !== "NONE" && (
+                    <div style={{ marginBottom:10 }}>
+                      <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Valeur authentification</div>
+                      <input value={selected.authValue||""} onChange={e => setSelected(p => ({ ...p, authValue: e.target.value }))} placeholder="Token, cle API, user:password..."
+                        style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
+                    </div>
+                  )}
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                    <div>
+                      <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Timeout (ms)</div>
+                      <input type="number" value={selected.timeoutMs||8000} onChange={e => setSelected(p => ({ ...p, timeoutMs: parseInt(e.target.value)||8000 }))}
+                        style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Retry max</div>
+                      <input type="number" value={selected.retryMax||2} onChange={e => setSelected(p => ({ ...p, retryMax: parseInt(e.target.value)||2 }))}
+                        style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
+                    </div>
+                  </div>
+
+                  {/* Queue config */}
+                  {selected.modeAppel === "QUEUE" && (
+                    <div style={{ marginTop:12 }}>
+                      <div style={{ fontSize:10, color:"#06b6d4", textTransform:"uppercase", letterSpacing:".12em", marginBottom:8 }}>Configuration Queue</div>
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                        <div>
+                          <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Type queue</div>
+                          <select value={selected.queueType||""} onChange={e => setSelected(p => ({ ...p, queueType: e.target.value }))}
+                            style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }}>
+                            <option value="">-- Selectionner --</option>
+                            {["RABBITMQ","KAFKA","ACTIVEMQ","IBM_MQ"].map(q => <option key={q} value={q}>{q}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>URL Broker</div>
+                          <input value={selected.queueUrl||""} onChange={e => setSelected(p => ({ ...p, queueUrl: e.target.value }))} placeholder="amqp://..."
+                            style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Topic envoi</div>
+                          <input value={selected.queueTopicSend||""} onChange={e => setSelected(p => ({ ...p, queueTopicSend: e.target.value }))}
+                            style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Topic reception</div>
+                          <input value={selected.queueTopicReceive||""} onChange={e => setSelected(p => ({ ...p, queueTopicReceive: e.target.value }))}
+                            style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div style={{ display:"flex", justifyContent:"flex-end", gap:10, padding:"14px 20px", borderTop:"1px solid rgba(255,255,255,.06)" }}>
+              <button onClick={() => setSelected(null)} style={{ padding:"8px 18px", borderRadius:8, fontSize:12, cursor:"pointer", background:"rgba(30,41,59,.5)", border:"1px solid #1D3250", color:"#7A8BA0" }}>Annuler</button>
+              <button onClick={() => saveAdapter(selected)} style={{ padding:"8px 20px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer", background:"linear-gradient(135deg,#0891b2,#0e7490)", border:"none", color:"#fff" }}>Enregistrer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Liste des adaptateurs */}
+      <div style={{ marginBottom:20 }}>
+        <div style={{ fontSize:14, fontWeight:700, color:"#E2EAF2", marginBottom:4 }}>Systemes Tiers</div>
+        <div style={{ fontSize:12, color:"#3E5470" }}>Configurez les adaptateurs vers les systemes externes</div>
+      </div>
+
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:12 }}>
+        {adapters.map(adapter => (
+          <div key={adapter.id} onClick={() => setSelected({...adapter})}
+            style={{ background:"rgba(8,15,28,.8)", border:"1px solid rgba(255,255,255,.06)", borderRadius:12, padding:"16px 18px", cursor:"pointer",
+              borderLeft:"3px solid "+(adapter.modeBouchon ? "#f59e0b" : "#10b981"),
+              transition:"all .15s" }}
+            onMouseEnter={e => e.currentTarget.style.background="rgba(6,182,212,.05)"}
+            onMouseLeave={e => e.currentTarget.style.background="rgba(8,15,28,.8)"}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ fontSize:20 }}>{ICONS[adapter.code] || "🔌"}</span>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:700, color:"#E2EAF2" }}>{adapter.nom}</div>
+                  <div style={{ fontSize:10, color:"#3E5470", fontFamily:"monospace" }}>{adapter.code}</div>
+                </div>
+              </div>
+              <span style={{ fontSize:10, padding:"2px 8px", borderRadius:20, fontWeight:700,
+                background: adapter.modeBouchon ? "rgba(245,158,11,.1)" : "rgba(16,185,129,.1)",
+                border: "1px solid " + (adapter.modeBouchon ? "rgba(245,158,11,.3)" : "rgba(16,185,129,.3)"),
+                color: adapter.modeBouchon ? "#f59e0b" : "#10b981" }}>
+                {adapter.modeBouchon ? "BOUCHON" : "REEL"}
+              </span>
+            </div>
+            <div style={{ fontSize:11, color:"#475569" }}>{adapter.description}</div>
+            <div style={{ marginTop:8, display:"flex", gap:8 }}>
+              <span style={{ fontSize:10, color:"#3E5470" }}>{adapter.modeAppel}</span>
+              {adapter.modeBouchon && (
+                <span style={{ fontSize:10, fontWeight:700, color: adapter.bouchonResultat==="POSITIF"?"#10b981":adapter.bouchonResultat==="NEGATIF"?"#ef4444":"#f59e0b" }}>
+                  → {adapter.bouchonResultat}
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────
 // APP PRINCIPALE — CONSOLE ADMIN
 // ─────────────────────────────────────────────────────────
@@ -1231,6 +1485,7 @@ export default function AdminConsole({ onExit }) {
           {activeMenu==="workflow"    && <MoteurWorkflow steps={steps} setSteps={setSteps} />}
           {activeMenu==="parametrage" && <ParamGeneral params={params} setParams={setParams} />}
           {activeMenu==="champs"      && <VisibiliteModule />}
+          {activeMenu==="adaptateurs" && <SystemAdapters />}
         </div>
       </div>
     </div>
