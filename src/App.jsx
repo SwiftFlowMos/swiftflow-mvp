@@ -161,16 +161,6 @@ const res = await fetch(`${API_URL}/bank-config`, { headers });
       if (res.ok) {
         const data = await res.json();
         setBankConfig(data);
-// Charger les modules accessibles selon le rôle
-if (user && user.role) {
-  const modulesRes = await fetch(`${API_URL}/modules/accessibles?roleCode=${user.role}`, {
-    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('sf_token') },
-  });
-  if (modulesRes.ok) {
-    const modulesData = await modulesRes.json();
-    setModulesAccessibles(modulesData);
-  }
-}
         if (data.couleurs) {
           const root = document.documentElement;
           root.style.setProperty('--color-primaire',   data.couleurs.primaire   || '#0891b2');
@@ -187,6 +177,26 @@ if (user && user.role) {
 console.log('useEffect bank config - user:', user?.login);
     applyBankConfig();
   }, []);
+
+  // useEffect dédié au chargement des modules accessibles
+useEffect(() => {
+  if (!user || !user.role) return;
+  const loadModules = async () => {
+    try {
+      const res = await fetch(`${API_URL}/modules/accessibles?roleCode=${user.role}`, {
+        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('sf_token') },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        console.log('Modules charges:', data.length);
+        setModulesAccessibles(data);
+      }
+    } catch(e) {
+      console.error('Erreur chargement modules:', e);
+    }
+  };
+  loadModules();
+}, [user]);
 
   if (!user) return <LoginScreen onLogin={u => { setUser(u); setActive(u.role==="ADMIN" ? null : MODULES.find(m=>m.roles.includes(u.role))?.id); }} bankConfig={bankConfig} />;
   if (user.role === "ADMIN" && showAdmin) return <AdminConsole onExit={() => setShowAdmin(false)} />;
