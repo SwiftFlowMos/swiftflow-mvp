@@ -1395,6 +1395,10 @@ function ReferentielUsers() {
   const [selected, setSelected] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [msg, setMsg] = useState(null);
+  const [modules, setModules] = useState([]);
+const [habEvenements, setHabEvenements] = useState([]);
+const [selectedRole, setSelectedRole] = useState("");
+const [selectedModule, setSelectedModule] = useState("");
 
   const showMsg = (type, text) => {
     setMsg({ type, text });
@@ -1422,14 +1426,27 @@ function ReferentielUsers() {
     } finally {
       setLoading(false);
     }
+    const mod = await fetch(`${API_URL}/modules`, { headers }).then(r => r.json());
+setModules(mod);
   };
 
+  const loadHabEvenements = async (roleCode, moduleCode) => {
+  if (!roleCode || !moduleCode) return;
+  const res = await fetch(`${API_URL}/modules/habilitations?roleCode=${roleCode}&moduleCode=${moduleCode}`, {
+    headers: { 'Authorization': 'Bearer ' + getToken() },
+  });
+  if (res.ok) {
+    const data = await res.json();
+    setHabEvenements(data);
+  }
+};
   const SOUS_MENUS = [
     { id:"utilisateurs", label:"Utilisateurs",         icon:"👤" },
     { id:"roles",        label:"Roles & Hierarchie",   icon:"🏛" },
     { id:"habilitations",label:"Matrice Habilitations",icon:"🔐" },
     { id:"delegations",  label:"Delegations",          icon:"🤝" },
     { id:"forcage",      label:"Habilitations Forcage",icon:"⚡" },
+    { id:"habilitations_evenements", label:"Habilitations Evenements", icon:"🎯" },
   ];
 
   const inp = (label, val, onChange, type="text") => (
@@ -1958,5 +1975,111 @@ export default function AdminConsole({ onExit }) {
         </div>
       </div>
     </div>
+
+    {sousMenu === "habilitations_evenements" && (
+  <div>
+    <div style={{ fontSize:13, fontWeight:700, color:"#E2EAF2", marginBottom:16 }}>
+      Habilitations par Evenement
+    </div>
+
+    {/* Filtres */}
+    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:20 }}>
+      <div>
+        <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Role</div>
+        <select value={selectedRole} onChange={e => { setSelectedRole(e.target.value); loadHabEvenements(e.target.value, selectedModule); }}
+          style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"7px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }}>
+          <option value="">-- Selectionner un role --</option>
+          {roles.map(r => <option key={r.code} value={r.code}>{r.nom}</option>)}
+        </select>
+      </div>
+      <div>
+        <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Module</div>
+        <select value={selectedModule} onChange={e => { setSelectedModule(e.target.value); loadHabEvenements(selectedRole, e.target.value); }}
+          style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"7px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }}>
+          <option value="">-- Selectionner un module --</option>
+          {modules.map(m => <option key={m.code} value={m.code}>{m.icone} {m.nom}</option>)}
+        </select>
+      </div>
+    </div>
+
+    {/* Matrice */}
+    {habEvenements.length > 0 && (
+      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+        {habEvenements.map(h => (
+          <div key={h.id} style={{ background:"rgba(8,15,28,.8)", border:"1px solid rgba(255,255,255,.06)", borderRadius:10, padding:"12px 16px",
+            display:"grid", gridTemplateColumns:"1fr 1fr auto auto auto auto", gap:12, alignItems:"center" }}>
+            <div>
+              <div style={{ fontSize:11, fontWeight:700, color:"#E2EAF2" }}>{h.typeNom}</div>
+              <div style={{ fontSize:10, color:"#3E5470" }}>{h.evenementNom}</div>
+            </div>
+            <div style={{ fontSize:10, color:"#3E5470", fontFamily:"monospace" }}>{h.evenementCode}</div>
+            {[
+              { key:"peutInitier",  label:"Initier",  color:"#10b981" },
+              { key:"peutValider",  label:"Valider",  color:"#06b6d4" },
+              { key:"peutModifier", label:"Modifier", color:"#f59e0b" },
+              { key:"peutAnnuler",  label:"Annuler",  color:"#ef4444" },
+            ].map(({ key, label, color }) => (
+              <div key={key} onClick={async () => {
+                const res = await fetch(`${API_URL}/modules/habilitations/${h.id}`, {
+                  method:'PATCH',
+                  headers:{'Content-Type':'application/json','Authorization':'Bearer '+getToken()},
+                  body: JSON.stringify({ [key]: !h[key] })
+                });
+                if (res.ok) {
+                  setHabEvenements(prev => prev.map(p => p.id === h.id ? {...p, [key]: !h[key]} : p));
+                }
+              }} style={{
+                padding:"4px 10px", borderRadius:20, fontSize:10, fontWeight:700, cursor:"pointer", textAlign:"center",
+                background: h[key] ? `rgba(${color === '#10b981' ? '16,185,129' : color === '#06b6d4' ? '6,182,212' : color === '#f59e0b' ? '245,158,11' : '239,68,68'},.15)` : "rgba(30,41,59,.5)",
+                border: `1px solid ${h[key] ? color + "40" : "#1D3250"}`,
+                color: h[key] ? color : "#475569",
+              }}>{label}</div>
+            ))}
+          </div>
+        ))}
+      </div>
+    )}
+
+    {selectedRole && selectedModule && habEvenements.length === 0 && (
+      <div style={{ textAlign:"center", padding:40, color:"#3E5470" }}>
+        <div style={{ fontSize:24, marginBottom:8 }}>🎯</div>
+        <div style={{ fontSize:12 }}>Aucune habilitation configuree pour ce role et ce module</div>
+        <button onClick={async () => {
+          const typesRes = await fetch(`${API_URL}/modules/${selectedModule}/types`, {
+            headers: { 'Authorization': 'Bearer ' + getToken() },
+          });
+          const types = await typesRes.json();
+          for (const type of types) {
+            const eventsRes = await fetch(`${API_URL}/modules/evenements?moduleCode=${selectedModule}&typeCode=${type.code}`, {
+              headers: { 'Authorization': 'Bearer ' + getToken() },
+            });
+            const events = await eventsRes.json();
+            for (const event of events) {
+              await fetch(`${API_URL}/modules/habilitations`, {
+                method:'POST',
+                headers:{'Content-Type':'application/json','Authorization':'Bearer '+getToken()},
+                body: JSON.stringify({
+                  roleCode: selectedRole,
+                  moduleCode: selectedModule,
+                  typeCode: type.code,
+                  evenementCode: event.code,
+                  peutInitier: false,
+                  peutValider: false,
+                  peutModifier: false,
+                  peutAnnuler: false,
+                })
+              });
+            }
+          }
+          loadHabEvenements(selectedRole, selectedModule);
+          showMsg("success", "Habilitations initialisees");
+        }} style={{ marginTop:16, padding:"8px 18px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer",
+          background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.2)", color:"#06b6d4" }}>
+          Initialiser les habilitations
+        </button>
+      </div>
+    )}
+  </div>
+)}
   );
 }
