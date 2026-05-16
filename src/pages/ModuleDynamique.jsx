@@ -22,6 +22,7 @@ const COMPOSANTS_EVENEMENTS = {
   // GARANTIES
   'GARANTIES_EMISES_CREATION':          null, // à implémenter
   'GARANTIES_RECUES_CREATION':          null, // à implémenter
+  'VIREMENTS_EMIS_MES_ORDRES': null, // injecté depuis App.jsx
 };
 
 const STATUS_EVENEMENT = {
@@ -37,6 +38,7 @@ const STATUS_EVENEMENT = {
   'CREATION':         { icon:"➕", color:"#7c3aed", desc:"Creer une garantie" },
   'MISE_EN_JEU':      { icon:"⚡", color:"#ef4444", desc:"Mettre en jeu la garantie" },
   'MAIN_LEVEE':       { icon:"🔓", color:"#10b981", desc:"Lever la garantie" },
+  'MES_ORDRES': { icon:"📂", color:"#F59E0B", desc:"Consulter et gerer mes ordres" },
 };
 
 export default function ModuleDynamique({ module, composants = {}, onEditOrder, onSaved }) {
