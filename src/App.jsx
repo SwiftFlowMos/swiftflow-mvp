@@ -5,7 +5,6 @@ import ValidationModule   from "./pages/ValidationModule.jsx";
 import WorkflowModule     from "./pages/WorkflowModule.jsx";
 import ReferentielsModule from "./pages/ReferentielsModule.jsx";
 import AdminConsole       from "./pages/AdminConsole.jsx";
-import MesOrdres from "./pages/MesOrdres.jsx";
 import ModuleDynamique from "./pages/ModuleDynamique.jsx";
 import MesOrdres from "./pages/MesOrdres.jsx";
 
