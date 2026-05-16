@@ -7,6 +7,7 @@ import ReferentielsModule from "./pages/ReferentielsModule.jsx";
 import AdminConsole       from "./pages/AdminConsole.jsx";
 import MesOrdres from "./pages/MesOrdres.jsx";
 import ModuleDynamique from "./pages/ModuleDynamique.jsx";
+import MesOrdres from "./pages/MesOrdres.jsx";
 
 const USERS = [
   { id:1, login:"admin",      password:"Admin@2026", nom:"Administrateur SwiftFlow", role:"ADMIN",         icon:"⚙",  color:"#64748b" },
@@ -144,7 +145,8 @@ function LoginScreen({ onLogin, bankConfig }) {
 }
 
 const COMPOSANTS_EVENEMENTS_APP = {
-  'VIREMENTS_EMIS_SAISIE': SaisieModule,
+  'VIREMENTS_EMIS_SAISIE':     SaisieModule,
+  'VIREMENTS_EMIS_MES_ORDRES': MesOrdres,
 };
 
 export default function App() {
