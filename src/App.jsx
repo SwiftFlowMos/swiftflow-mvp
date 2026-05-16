@@ -211,16 +211,17 @@ const accessibles = [
   // Modules statiques existants
   ...MODULES.filter(m => m.roles.includes(user.role)),
   // Modules dynamiques depuis la base
-  ...modulesAccessibles.map(m => ({
-    id: m.code.toLowerCase(),
-    label: m.nom,
-    icon: m.icone,
-    color: m.couleur,
-    roles: [user.role],
-    component: null,
-    isDynamic: true,
-    types: m.types,
-  }))
+...modulesAccessibles.map(m => ({
+  id: m.code.toLowerCase(),
+  code: m.code,
+  label: m.nom,
+  icon: m.icone,
+  color: m.couleur,
+  roles: [user.role],
+  component: null,
+  isDynamic: true,
+  types: m.types,
+}))
 ];
   const ActiveComp  = accessibles.find(m=>m.id===activeModule)?.component;
 
