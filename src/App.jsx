@@ -143,6 +143,10 @@ function LoginScreen({ onLogin, bankConfig }) {
   );
 }
 
+const COMPOSANTS_EVENEMENTS_APP = {
+  'VIREMENTS_EMIS_SAISIE': SaisieModule,
+};
+
 export default function App() {
  const [orderToEdit, setOrderToEdit] = useState(null);
   const [user, setUser]           = useState(null);
@@ -202,9 +206,6 @@ useEffect(() => {
   if (!user) return <LoginScreen onLogin={u => { setUser(u); setActive(u.role==="ADMIN" ? null : MODULES.find(m=>m.roles.includes(u.role))?.id); }} bankConfig={bankConfig} />;
   if (user.role === "ADMIN" && showAdmin) return <AdminConsole onExit={() => setShowAdmin(false)} />;
 
-const COMPOSANTS_EVENEMENTS_APP = {
-  'VIREMENTS_EMIS_SAISIE': SaisieModule,
-};
 
 const accessibles = [
   // Modules statiques existants
