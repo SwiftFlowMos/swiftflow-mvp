@@ -149,6 +149,7 @@ export default function App() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [navOpen, setNavOpen]     = useState(true);
   const [bankConfig, setBankConfig] = useState(null);
+  const [modulesAccessibles, setModulesAccessibles] = useState([]);
 
   // Charger la config banque et appliquer les couleurs au démarrage
 useEffect(() => {
@@ -160,6 +161,14 @@ const res = await fetch(`${API_URL}/bank-config`, { headers });
       if (res.ok) {
         const data = await res.json();
         setBankConfig(data);
+        // Charger les modules accessibles selon le rôle
+const modulesRes = await fetch(`${API_URL}/modules/accessibles?roleCode=${u.role}`, {
+  headers: { 'Authorization': 'Bearer ' + localStorage.getItem('sf_token') },
+});
+if (modulesRes.ok) {
+  const modulesData = await modulesRes.json();
+  setModulesAccessibles(modulesData);
+}
         if (data.couleurs) {
           const root = document.documentElement;
           root.style.setProperty('--color-primaire',   data.couleurs.primaire   || '#0891b2');
