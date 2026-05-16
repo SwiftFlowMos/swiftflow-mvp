@@ -162,7 +162,7 @@ const res = await fetch(`${API_URL}/bank-config`, { headers });
         const data = await res.json();
         setBankConfig(data);
         // Charger les modules accessibles selon le rôle
-const modulesRes = await fetch(`${API_URL}/modules/accessibles?roleCode=${u.role}`, {
+const modulesRes = await fetch(`${API_URL}/modules/accessibles?roleCode=${user.role}`, {
   headers: { 'Authorization': 'Bearer ' + localStorage.getItem('sf_token') },
 });
 if (modulesRes.ok) {
