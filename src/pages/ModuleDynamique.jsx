@@ -121,7 +121,8 @@ const EventComposant = eventKey ? (composants[eventKey] || COMPOSANTS_EVENEMENTS
                 const key = `${module.code}_${activeType}_${e.code}`;
                 const comp = composants[key] || COMPOSANTS_EVENEMENTS[key];
                 const meta = STATUS_EVENEMENT[e.code] || { icon:"📋", color:"#64748b", desc:"" };
-                const disponible = !!comp;
+                const disponible = !!(comp) || !!(composants[key]);
+console.log('key:', key, 'comp:', !!comp, 'composants[key]:', !!(composants && composants[key]));
 
                 return (
                   <div key={e.code}
