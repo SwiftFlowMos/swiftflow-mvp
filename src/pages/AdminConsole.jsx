@@ -147,6 +147,7 @@ const MENUS = [
   { id:"parametrage", label:"Parametrage general",     icon:"⚙",  color:"#F59E0B" },
   { id:"champs",      label:"Parametrage des champs",  icon:"👁",  color:"#EC4899" },
   { id:"adaptateurs", label:"Systemes Tiers", icon:"🔌", color:"#10B981" },
+  { id:"utilisateurs", label:"Utilisateurs & Habilitations", icon:"👥", color:"#8B5CF6" },
 ];
 
 const REF_TILES = [
@@ -1383,6 +1384,473 @@ function SystemAdapters() {
   );
 }
 
+function ReferentielUsers() {
+  const [sousMenu, setSousMenu] = useState("utilisateurs");
+  const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [habilitations, setHabilitations] = useState([]);
+  const [delegations, setDelegations] = useState([]);
+  const [forceHab, setForceHab] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [msg, setMsg] = useState(null);
+
+  const showMsg = (type, text) => {
+    setMsg({ type, text });
+    setTimeout(() => setMsg(null), 3000);
+  };
+
+  useEffect(() => { loadAll(); }, []);
+
+  const loadAll = async () => {
+    try {
+      setLoading(true);
+      const token = getToken();
+      const headers = { 'Authorization': 'Bearer ' + token };
+      const [u, r, h, d, fh] = await Promise.all([
+        fetch(`${API_URL}/referentiel-users/users`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/referentiel-users/roles`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/referentiel-users/habilitations`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/referentiel-users/delegations`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/referentiel-users/force-habilitations`, { headers }).then(r => r.json()),
+      ]);
+      setUsers(u); setRoles(r); setHabilitations(h);
+      setDelegations(d); setForceHab(fh);
+    } catch(e) {
+      console.error('Erreur chargement:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const SOUS_MENUS = [
+    { id:"utilisateurs", label:"Utilisateurs",         icon:"👤" },
+    { id:"roles",        label:"Roles & Hierarchie",   icon:"🏛" },
+    { id:"habilitations",label:"Matrice Habilitations",icon:"🔐" },
+    { id:"delegations",  label:"Delegations",          icon:"🤝" },
+    { id:"forcage",      label:"Habilitations Forcage",icon:"⚡" },
+  ];
+
+  const inp = (label, val, onChange, type="text") => (
+    <div style={{ marginBottom:10 }}>
+      <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>{label}</div>
+      <input type={type} value={val||""} onChange={e => onChange(e.target.value)}
+        style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"7px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
+    </div>
+  );
+
+  const sel = (label, val, onChange, opts) => (
+    <div style={{ marginBottom:10 }}>
+      <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>{label}</div>
+      <select value={val||""} onChange={e => onChange(e.target.value)}
+        style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"7px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }}>
+        <option value="">-- Selectionner --</option>
+        {opts.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    </div>
+  );
+
+  const toggle = (label, val, onChange) => (
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+      <div style={{ fontSize:12, color:"#C8D8EA" }}>{label}</div>
+      <div onClick={() => onChange(!val)}
+        style={{ width:36, height:20, borderRadius:10, cursor:"pointer", position:"relative",
+          background:val?"#0891b2":"#1e293b", border:"1px solid "+(val?"#06b6d4":"#334155"), transition:"all .25s" }}>
+        <div style={{ position:"absolute", top:3, left:val?18:3, width:12, height:12, borderRadius:"50%",
+          background:val?"#fff":"#475569", transition:"left .25s" }} />
+      </div>
+    </div>
+  );
+
+  if (loading) return <div style={{ padding:40, textAlign:"center", color:"#3E5470" }}>Chargement...</div>;
+
+  return (
+    <div style={{ padding:24 }}>
+      {msg && (
+        <div style={{ position:"fixed", top:20, right:20, zIndex:9999, padding:"12px 20px", borderRadius:10, fontSize:12, fontWeight:700,
+          background: msg.type==="success" ? "rgba(16,185,129,.15)" : "rgba(239,68,68,.15)",
+          border: "1px solid " + (msg.type==="success" ? "rgba(16,185,129,.4)" : "rgba(239,68,68,.4)"),
+          color: msg.type==="success" ? "#10b981" : "#ef4444" }}>
+          {msg.text}
+        </div>
+      )}
+
+      {/* Sous-menus */}
+      <div style={{ display:"flex", gap:8, marginBottom:24, borderBottom:"1px solid rgba(255,255,255,.06)", paddingBottom:0 }}>
+        {SOUS_MENUS.map(m => (
+          <button key={m.id} onClick={() => setSousMenu(m.id)}
+            style={{ padding:"8px 16px", borderRadius:"8px 8px 0 0", fontSize:11, fontWeight:700, cursor:"pointer", border:"none",
+              background: sousMenu===m.id ? "rgba(8,15,28,.9)" : "transparent",
+              color: sousMenu===m.id ? "#8B5CF6" : "#3E5470",
+              borderBottom: sousMenu===m.id ? "2px solid #8B5CF6" : "2px solid transparent" }}>
+            {m.icon} {m.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── UTILISATEURS ── */}
+      {sousMenu === "utilisateurs" && (
+        <div>
+          <div style={{ fontSize:13, fontWeight:700, color:"#E2EAF2", marginBottom:16 }}>
+            Utilisateurs ({users.length})
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {users.map(u => (
+              <div key={u.id} style={{ background:"rgba(8,15,28,.8)", border:"1px solid rgba(255,255,255,.06)", borderRadius:10, padding:"12px 16px",
+                display:"grid", gridTemplateColumns:"1fr 1fr 1fr auto", gap:12, alignItems:"center" }}>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:700, color:"#E2EAF2" }}>{u.nom}</div>
+                  <div style={{ fontSize:10, color:"#3E5470", fontFamily:"monospace" }}>{u.login} · {u.email}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize:11, color:"#06b6d4", fontWeight:700 }}>{u.roleNom || u.role}</div>
+                  <div style={{ fontSize:10, color:"#3E5470" }}>{u.agenceCode || "—"}</div>
+                </div>
+                <div>
+                  <span style={{ fontSize:10, padding:"2px 8px", borderRadius:20, fontWeight:700,
+                    background: u.isActive ? "rgba(16,185,129,.1)" : "rgba(239,68,68,.1)",
+                    border: "1px solid " + (u.isActive ? "rgba(16,185,129,.3)" : "rgba(239,68,68,.3)"),
+                    color: u.isActive ? "#10b981" : "#ef4444" }}>
+                    {u.isActive ? "Actif" : "Inactif"}
+                  </span>
+                </div>
+                <button onClick={() => { setSelected({...u}); setShowModal("user"); }}
+                  style={{ padding:"5px 12px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer",
+                    background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.2)", color:"#06b6d4" }}>
+                  Modifier
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── RÔLES ── */}
+      {sousMenu === "roles" && (
+        <div>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+            <div style={{ fontSize:13, fontWeight:700, color:"#E2EAF2" }}>Roles & Hierarchie ({roles.length})</div>
+            <button onClick={() => { setSelected({ code:"", nom:"", niveau:1, peutSaisir:false, peutValider:false, peutForcer:false, peutDeleguer:false, peutAdministrer:false, montantMaxValidation:0, montantMaxForcage:0 }); setShowModal("role_new"); }}
+              style={{ padding:"6px 14px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer",
+                background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.2)", color:"#06b6d4" }}>
+              + Nouveau role
+            </button>
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {roles.sort((a,b) => a.niveau - b.niveau).map(r => (
+              <div key={r.code} style={{ background:"rgba(8,15,28,.8)", border:"1px solid rgba(255,255,255,.06)", borderRadius:10, padding:"12px 16px",
+                display:"grid", gridTemplateColumns:"auto 1fr 1fr 1fr auto", gap:12, alignItems:"center",
+                borderLeft:"3px solid " + (r.isActive ? "#8B5CF6" : "#334155") }}>
+                <div style={{ width:28, height:28, borderRadius:"50%", background:"rgba(139,92,246,.15)", border:"1.5px solid rgba(139,92,246,.35)",
+                  display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:800, color:"#8B5CF6" }}>
+                  N{r.niveau}
+                </div>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:700, color:"#E2EAF2" }}>{r.nom}</div>
+                  <div style={{ fontSize:10, color:"#3E5470", fontFamily:"monospace" }}>{r.code}</div>
+                </div>
+                <div style={{ fontSize:11, color:"#475569" }}>
+                  {r.roleSuperieurNom ? `↑ ${r.roleSuperieurNom}` : "Niveau maximum"}
+                </div>
+                <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                  {r.peutSaisir    && <span style={{ fontSize:9, padding:"1px 6px", borderRadius:10, background:"rgba(6,182,212,.1)", color:"#06b6d4", border:"1px solid rgba(6,182,212,.2)" }}>Saisie</span>}
+                  {r.peutValider   && <span style={{ fontSize:9, padding:"1px 6px", borderRadius:10, background:"rgba(16,185,129,.1)", color:"#10b981", border:"1px solid rgba(16,185,129,.2)" }}>Validation</span>}
+                  {r.peutForcer    && <span style={{ fontSize:9, padding:"1px 6px", borderRadius:10, background:"rgba(245,158,11,.1)", color:"#f59e0b", border:"1px solid rgba(245,158,11,.2)" }}>Forcage</span>}
+                  {r.peutAdministrer && <span style={{ fontSize:9, padding:"1px 6px", borderRadius:10, background:"rgba(239,68,68,.1)", color:"#ef4444", border:"1px solid rgba(239,68,68,.2)" }}>Admin</span>}
+                </div>
+                <button onClick={() => { setSelected({...r}); setShowModal("role"); }}
+                  style={{ padding:"5px 12px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer",
+                    background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.2)", color:"#06b6d4" }}>
+                  Configurer
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── MATRICE HABILITATIONS ── */}
+      {sousMenu === "habilitations" && (
+        <div>
+          <div style={{ fontSize:13, fontWeight:700, color:"#E2EAF2", marginBottom:16 }}>Matrice des Habilitations</div>
+          {roles.filter(r => r.isActive).map(role => {
+            const roleHab = habilitations.filter(h => h.roleCode === role.code);
+            const modules = [...new Set(roleHab.map(h => h.module))];
+            return (
+              <div key={role.code} style={{ marginBottom:16, background:"rgba(8,15,28,.8)", border:"1px solid rgba(255,255,255,.06)", borderRadius:10, overflow:"hidden" }}>
+                <div style={{ padding:"10px 16px", background:"rgba(139,92,246,.08)", borderBottom:"1px solid rgba(255,255,255,.06)", display:"flex", alignItems:"center", gap:8 }}>
+                  <span style={{ fontSize:11, fontWeight:800, color:"#8B5CF6" }}>N{role.niveau}</span>
+                  <span style={{ fontSize:12, fontWeight:700, color:"#E2EAF2" }}>{role.nom}</span>
+                </div>
+                <div style={{ padding:"10px 16px" }}>
+                  {modules.map(mod => (
+                    <div key={mod} style={{ marginBottom:8 }}>
+                      <div style={{ fontSize:10, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>{mod}</div>
+                      <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                        {roleHab.filter(h => h.module === mod).map(h => (
+                          <div key={h.id} onClick={async () => {
+                            const res = await fetch(`${API_URL}/referentiel-users/habilitations/${h.id}`, {
+                              method:'PATCH', headers:{'Content-Type':'application/json','Authorization':'Bearer '+getToken()},
+                              body: JSON.stringify({ autorise: !h.autorise, montantMax: h.montantMax })
+                            });
+                            if (res.ok) {
+                              setHabilitations(prev => prev.map(p => p.id === h.id ? {...p, autorise:!h.autorise} : p));
+                            }
+                          }} style={{
+                            padding:"3px 10px", borderRadius:20, fontSize:11, fontWeight:700, cursor:"pointer",
+                            background: h.autorise ? "rgba(16,185,129,.1)" : "rgba(30,41,59,.5)",
+                            border: "1px solid " + (h.autorise ? "rgba(16,185,129,.3)" : "#1D3250"),
+                            color: h.autorise ? "#10b981" : "#475569",
+                          }}>{h.action}</div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── DÉLÉGATIONS ── */}
+      {sousMenu === "delegations" && (
+        <div>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+            <div style={{ fontSize:13, fontWeight:700, color:"#E2EAF2" }}>Delegations ({delegations.length})</div>
+            <button onClick={() => { setSelected({ delegateurId:"", delegataireId:"", dateDebut:"", dateFin:"", motif:"" }); setShowModal("delegation"); }}
+              style={{ padding:"6px 14px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer",
+                background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.2)", color:"#06b6d4" }}>
+              + Nouvelle delegation
+            </button>
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {delegations.map(d => (
+              <div key={d.id} style={{ background:"rgba(8,15,28,.8)", border:"1px solid rgba(255,255,255,.06)", borderRadius:10, padding:"12px 16px",
+                display:"grid", gridTemplateColumns:"1fr 1fr 1fr auto", gap:12, alignItems:"center",
+                borderLeft:"3px solid " + (d.statut==="ACTIVE"?"#10b981":"#334155") }}>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:700, color:"#E2EAF2" }}>{d.delegateurNom}</div>
+                  <div style={{ fontSize:10, color:"#3E5470" }}>Delegateur</div>
+                </div>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:700, color:"#06b6d4" }}>{d.delegataireNom}</div>
+                  <div style={{ fontSize:10, color:"#3E5470" }}>Delegataire</div>
+                </div>
+                <div>
+                  <div style={{ fontSize:10, color:"#C8D8EA" }}>
+                    {new Date(d.dateDebut).toLocaleDateString("fr-FR")} → {new Date(d.dateFin).toLocaleDateString("fr-FR")}
+                  </div>
+                  <span style={{ fontSize:10, padding:"1px 6px", borderRadius:10, fontWeight:700,
+                    background: d.statut==="ACTIVE" ? "rgba(16,185,129,.1)" : "rgba(100,116,139,.1)",
+                    color: d.statut==="ACTIVE" ? "#10b981" : "#64748b" }}>
+                    {d.statut}
+                  </span>
+                </div>
+                {d.statut === "ACTIVE" && (
+                  <button onClick={async () => {
+                    const res = await fetch(`${API_URL}/referentiel-users/delegations/${d.id}/revoquer`, {
+                      method:'PATCH', headers:{'Authorization':'Bearer '+getToken()}
+                    });
+                    if (res.ok) { showMsg("success","Delegation revoquee"); loadAll(); }
+                  }} style={{ padding:"5px 12px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer",
+                    background:"rgba(239,68,68,.08)", border:"1px solid rgba(239,68,68,.2)", color:"#ef4444" }}>
+                    Revoquer
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── HABILITATIONS FORÇAGE ── */}
+      {sousMenu === "forcage" && (
+        <div>
+          <div style={{ fontSize:13, fontWeight:700, color:"#E2EAF2", marginBottom:16 }}>Habilitations Forcage</div>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            {forceHab.map(fh => (
+              <div key={fh.id} style={{ background:"rgba(8,15,28,.8)", border:"1px solid rgba(255,255,255,.06)", borderRadius:10, padding:"12px 16px",
+                display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr auto", gap:12, alignItems:"center",
+                borderLeft:"3px solid rgba(245,158,11,.4)" }}>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:700, color:"#f59e0b" }}>{fh.roleNom}</div>
+                  <div style={{ fontSize:10, color:"#3E5470", fontFamily:"monospace" }}>{fh.roleCode}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize:12, color:"#E2EAF2" }}>{fh.systemNom}</div>
+                  <div style={{ fontSize:10, color:"#3E5470", fontFamily:"monospace" }}>{fh.systemAdapterCode}</div>
+                </div>
+                <div style={{ fontSize:11, color:"#C8D8EA" }}>
+                  Max: {fh.montantMax > 0 ? parseFloat(fh.montantMax).toLocaleString("fr-FR") : "Illimite"}
+                </div>
+                <div style={{ fontSize:11, color:"#C8D8EA" }}>
+                  Quota: {fh.quotaJournalier}/jour
+                  {fh.doubleValidation && <span style={{ marginLeft:6, fontSize:9, color:"#f59e0b" }}>2FA requis</span>}
+                </div>
+                <button onClick={() => { setSelected({...fh}); setShowModal("forcage"); }}
+                  style={{ padding:"5px 12px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer",
+                    background:"rgba(245,158,11,.08)", border:"1px solid rgba(245,158,11,.2)", color:"#f59e0b" }}>
+                  Modifier
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── MODALES ── */}
+
+      {/* Modale Utilisateur */}
+      {showModal === "user" && selected && (
+        <div style={{ position:"fixed", inset:0, zIndex:9000, background:"rgba(4,8,18,.88)", backdropFilter:"blur(10px)", display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+          <div style={{ width:"100%", maxWidth:500, background:"#0C1628", border:"1px solid rgba(6,182,212,.2)", borderRadius:16, overflow:"hidden" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 20px", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
+              <div style={{ fontSize:14, fontWeight:700, color:"#E2EAF2" }}>Modifier utilisateur — {selected.login}</div>
+              <button onClick={() => setShowModal(null)} style={{ background:"none", border:"none", color:"#475569", cursor:"pointer", fontSize:20 }}>x</button>
+            </div>
+            <div style={{ padding:20 }}>
+              {inp("Nom complet", selected.nom, v => setSelected(p => ({...p, nom:v})))}
+              {inp("Email", selected.email, v => setSelected(p => ({...p, email:v})))}
+              {inp("Telephone", selected.telephone, v => setSelected(p => ({...p, telephone:v})))}
+              {sel("Role", selected.roleCode, v => setSelected(p => ({...p, roleCode:v, role:v})),
+                roles.map(r => ({ value:r.code, label:r.nom })))}
+              {sel("Agence", selected.agenceCode, v => setSelected(p => ({...p, agenceCode:v})),
+                ["AG-CAS-01","AG-CAS-02","AG-RBA-01","AG-RBA-02","AG-MRK-01"].map(a => ({ value:a, label:a })))}
+              {toggle("Compte actif", selected.isActive, v => setSelected(p => ({...p, isActive:v})))}
+            </div>
+            <div style={{ display:"flex", justifyContent:"flex-end", gap:10, padding:"14px 20px", borderTop:"1px solid rgba(255,255,255,.06)" }}>
+              <button onClick={() => setShowModal(null)} style={{ padding:"8px 18px", borderRadius:8, fontSize:12, cursor:"pointer", background:"rgba(30,41,59,.5)", border:"1px solid #1D3250", color:"#7A8BA0" }}>Annuler</button>
+              <button onClick={async () => {
+                const res = await fetch(`${API_URL}/referentiel-users/users/${selected.id}`, {
+                  method:'PATCH', headers:{'Content-Type':'application/json','Authorization':'Bearer '+getToken()},
+                  body: JSON.stringify(selected)
+                });
+                if (res.ok) { showMsg("success","Utilisateur mis a jour"); loadAll(); setShowModal(null); }
+                else showMsg("error","Erreur lors de la sauvegarde");
+              }} style={{ padding:"8px 20px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer", background:"linear-gradient(135deg,#0891b2,#0e7490)", border:"none", color:"#fff" }}>Enregistrer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modale Rôle */}
+      {(showModal === "role" || showModal === "role_new") && selected && (
+        <div style={{ position:"fixed", inset:0, zIndex:9000, background:"rgba(4,8,18,.88)", backdropFilter:"blur(10px)", display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+          <div style={{ width:"100%", maxWidth:500, background:"#0C1628", border:"1px solid rgba(139,92,246,.2)", borderRadius:16, overflow:"hidden" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 20px", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
+              <div style={{ fontSize:14, fontWeight:700, color:"#E2EAF2" }}>
+                {showModal === "role_new" ? "Nouveau role" : `Configurer role — ${selected.code}`}
+              </div>
+              <button onClick={() => setShowModal(null)} style={{ background:"none", border:"none", color:"#475569", cursor:"pointer", fontSize:20 }}>x</button>
+            </div>
+            <div style={{ padding:20, maxHeight:450, overflowY:"auto" }}>
+              {showModal === "role_new" && inp("Code role", selected.code, v => setSelected(p => ({...p, code:v.toUpperCase()})))}
+              {inp("Nom du role", selected.nom, v => setSelected(p => ({...p, nom:v})))}
+              {inp("Description", selected.description, v => setSelected(p => ({...p, description:v})))}
+              {inp("Niveau hierarchique", selected.niveau, v => setSelected(p => ({...p, niveau:parseInt(v)||1})), "number")}
+              {sel("Role superieur (escalade)", selected.roleSuperieurCode, v => setSelected(p => ({...p, roleSuperieurCode:v})),
+                roles.filter(r => r.code !== selected.code).map(r => ({ value:r.code, label:`N${r.niveau} — ${r.nom}` })))}
+              <div style={{ marginTop:12, marginBottom:8, fontSize:10, color:"#06b6d4", textTransform:"uppercase", letterSpacing:".1em" }}>Permissions</div>
+              {toggle("Peut saisir des ordres", selected.peutSaisir, v => setSelected(p => ({...p, peutSaisir:v})))}
+              {toggle("Peut valider des ordres", selected.peutValider, v => setSelected(p => ({...p, peutValider:v})))}
+              {toggle("Peut forcer des blocages", selected.peutForcer, v => setSelected(p => ({...p, peutForcer:v})))}
+              {toggle("Peut deleguer", selected.peutDeleguer, v => setSelected(p => ({...p, peutDeleguer:v})))}
+              {toggle("Peut administrer", selected.peutAdministrer, v => setSelected(p => ({...p, peutAdministrer:v})))}
+              {toggle("Role actif", selected.isActive !== false, v => setSelected(p => ({...p, isActive:v})))}
+              <div style={{ marginTop:12, marginBottom:8, fontSize:10, color:"#06b6d4", textTransform:"uppercase", letterSpacing:".1em" }}>Limites de montant</div>
+              {inp("Montant max validation (0 = illimite)", selected.montantMaxValidation, v => setSelected(p => ({...p, montantMaxValidation:parseFloat(v)||0})), "number")}
+              {inp("Montant max forcage (0 = illimite)", selected.montantMaxForcage, v => setSelected(p => ({...p, montantMaxForcage:parseFloat(v)||0})), "number")}
+            </div>
+            <div style={{ display:"flex", justifyContent:"flex-end", gap:10, padding:"14px 20px", borderTop:"1px solid rgba(255,255,255,.06)" }}>
+              <button onClick={() => setShowModal(null)} style={{ padding:"8px 18px", borderRadius:8, fontSize:12, cursor:"pointer", background:"rgba(30,41,59,.5)", border:"1px solid #1D3250", color:"#7A8BA0" }}>Annuler</button>
+              <button onClick={async () => {
+                let res;
+                if (showModal === "role_new") {
+                  res = await fetch(`${API_URL}/referentiel-users/roles`, {
+                    method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+getToken()},
+                    body: JSON.stringify(selected)
+                  });
+                } else {
+                  res = await fetch(`${API_URL}/referentiel-users/roles/${selected.code}`, {
+                    method:'PATCH', headers:{'Content-Type':'application/json','Authorization':'Bearer '+getToken()},
+                    body: JSON.stringify(selected)
+                  });
+                }
+                if (res.ok) { showMsg("success","Role sauvegarde"); loadAll(); setShowModal(null); }
+                else showMsg("error","Erreur lors de la sauvegarde");
+              }} style={{ padding:"8px 20px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer", background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", color:"#fff" }}>Enregistrer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modale Délégation */}
+      {showModal === "delegation" && selected && (
+        <div style={{ position:"fixed", inset:0, zIndex:9000, background:"rgba(4,8,18,.88)", backdropFilter:"blur(10px)", display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+          <div style={{ width:"100%", maxWidth:480, background:"#0C1628", border:"1px solid rgba(16,185,129,.2)", borderRadius:16, overflow:"hidden" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 20px", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
+              <div style={{ fontSize:14, fontWeight:700, color:"#E2EAF2" }}>Nouvelle delegation</div>
+              <button onClick={() => setShowModal(null)} style={{ background:"none", border:"none", color:"#475569", cursor:"pointer", fontSize:20 }}>x</button>
+            </div>
+            <div style={{ padding:20 }}>
+              {sel("Delegateur (qui delegue)", selected.delegateurId, v => setSelected(p => ({...p, delegateurId:v})),
+                users.map(u => ({ value:u.id, label:`${u.nom} (${u.roleNom||u.role})` })))}
+              {sel("Delegataire (qui recoit)", selected.delegataireId, v => setSelected(p => ({...p, delegataireId:v})),
+                users.filter(u => u.id !== selected.delegateurId).map(u => ({ value:u.id, label:`${u.nom} (${u.roleNom||u.role})` })))}
+              {inp("Date debut", selected.dateDebut, v => setSelected(p => ({...p, dateDebut:v})), "datetime-local")}
+              {inp("Date fin", selected.dateFin, v => setSelected(p => ({...p, dateFin:v})), "datetime-local")}
+              {inp("Motif", selected.motif, v => setSelected(p => ({...p, motif:v})))}
+            </div>
+            <div style={{ display:"flex", justifyContent:"flex-end", gap:10, padding:"14px 20px", borderTop:"1px solid rgba(255,255,255,.06)" }}>
+              <button onClick={() => setShowModal(null)} style={{ padding:"8px 18px", borderRadius:8, fontSize:12, cursor:"pointer", background:"rgba(30,41,59,.5)", border:"1px solid #1D3250", color:"#7A8BA0" }}>Annuler</button>
+              <button onClick={async () => {
+                const res = await fetch(`${API_URL}/referentiel-users/delegations`, {
+                  method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+getToken()},
+                  body: JSON.stringify(selected)
+                });
+                if (res.ok) { showMsg("success","Delegation creee"); loadAll(); setShowModal(null); }
+                else showMsg("error","Erreur lors de la creation");
+              }} style={{ padding:"8px 20px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer", background:"linear-gradient(135deg,#059669,#047857)", border:"none", color:"#fff" }}>Creer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modale Forçage */}
+      {showModal === "forcage" && selected && (
+        <div style={{ position:"fixed", inset:0, zIndex:9000, background:"rgba(4,8,18,.88)", backdropFilter:"blur(10px)", display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+          <div style={{ width:"100%", maxWidth:420, background:"#0C1628", border:"1px solid rgba(245,158,11,.2)", borderRadius:16, overflow:"hidden" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 20px", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
+              <div style={{ fontSize:14, fontWeight:700, color:"#E2EAF2" }}>
+                Forcage — {selected.roleNom} / {selected.systemNom}
+              </div>
+              <button onClick={() => setShowModal(null)} style={{ background:"none", border:"none", color:"#475569", cursor:"pointer", fontSize:20 }}>x</button>
+            </div>
+            <div style={{ padding:20 }}>
+              {inp("Montant max forcable (0 = illimite)", selected.montantMax, v => setSelected(p => ({...p, montantMax:parseFloat(v)||0})), "number")}
+              {inp("Quota journalier (nb max forcages/jour)", selected.quotaJournalier, v => setSelected(p => ({...p, quotaJournalier:parseInt(v)||5})), "number")}
+              {toggle("Double validation requise (2FA)", selected.doubleValidation, v => setSelected(p => ({...p, doubleValidation:v})))}
+            </div>
+            <div style={{ display:"flex", justifyContent:"flex-end", gap:10, padding:"14px 20px", borderTop:"1px solid rgba(255,255,255,.06)" }}>
+              <button onClick={() => setShowModal(null)} style={{ padding:"8px 18px", borderRadius:8, fontSize:12, cursor:"pointer", background:"rgba(30,41,59,.5)", border:"1px solid #1D3250", color:"#7A8BA0" }}>Annuler</button>
+              <button onClick={async () => {
+                const res = await fetch(`${API_URL}/referentiel-users/force-habilitations/${selected.id}`, {
+                  method:'PATCH', headers:{'Content-Type':'application/json','Authorization':'Bearer '+getToken()},
+                  body: JSON.stringify({ montantMax:selected.montantMax, quotaJournalier:selected.quotaJournalier, doubleValidation:selected.doubleValidation })
+                });
+                if (res.ok) { showMsg("success","Habilitation mise a jour"); loadAll(); setShowModal(null); }
+                else showMsg("error","Erreur lors de la sauvegarde");
+              }} style={{ padding:"8px 20px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer", background:"linear-gradient(135deg,#d97706,#b45309)", border:"none", color:"#fff" }}>Enregistrer</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────
 // APP PRINCIPALE — CONSOLE ADMIN
 // ─────────────────────────────────────────────────────────
@@ -1486,6 +1954,7 @@ export default function AdminConsole({ onExit }) {
           {activeMenu==="parametrage" && <ParamGeneral params={params} setParams={setParams} />}
           {activeMenu==="champs"      && <VisibiliteModule />}
           {activeMenu==="adaptateurs" && <SystemAdapters />}
+          {activeMenu==="utilisateurs" && <ReferentielUsers />}
         </div>
       </div>
     </div>
