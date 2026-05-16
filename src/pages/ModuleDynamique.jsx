@@ -49,7 +49,8 @@ export default function ModuleDynamique({ module, composants = {}, onEditOrder, 
 
   const currentType = module.types?.find(t => t.code === activeType);
   const eventKey = activeEvent ? `${module.code}_${activeType}_${activeEvent.code}` : null;
-  const EventComposant = eventKey ? (composants[eventKey] || COMPOSANTS_EVENEMENTS[eventKey]) : null;
+  console.log('eventKey:', eventKey, 'composants keys:', Object.keys(composants||{}));
+const EventComposant = eventKey ? (composants[eventKey] || COMPOSANTS_EVENEMENTS[eventKey]) : null;
 
   // Si un événement est sélectionné et a un composant
   if (activeEvent && EventComposant) {
