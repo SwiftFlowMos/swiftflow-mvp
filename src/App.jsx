@@ -6,6 +6,7 @@ import WorkflowModule     from "./pages/WorkflowModule.jsx";
 import ReferentielsModule from "./pages/ReferentielsModule.jsx";
 import AdminConsole       from "./pages/AdminConsole.jsx";
 import MesOrdres from "./pages/MesOrdres.jsx";
+import ModuleDynamique from "./pages/ModuleDynamique.jsx";
 
 const USERS = [
   { id:1, login:"admin",      password:"Admin@2026", nom:"Administrateur SwiftFlow", role:"ADMIN",         icon:"⚙",  color:"#64748b" },
@@ -201,7 +202,11 @@ useEffect(() => {
   if (!user) return <LoginScreen onLogin={u => { setUser(u); setActive(u.role==="ADMIN" ? null : MODULES.find(m=>m.roles.includes(u.role))?.id); }} bankConfig={bankConfig} />;
   if (user.role === "ADMIN" && showAdmin) return <AdminConsole onExit={() => setShowAdmin(false)} />;
 
-  const accessibles = [
+const COMPOSANTS_EVENEMENTS_APP = {
+  'VIREMENTS_EMIS_SAISIE': SaisieModule,
+};
+
+const accessibles = [
   // Modules statiques existants
   ...MODULES.filter(m => m.roles.includes(user.role)),
   // Modules dynamiques depuis la base
@@ -211,7 +216,7 @@ useEffect(() => {
     icon: m.icone,
     color: m.couleur,
     roles: [user.role],
-    component: null, // à implémenter par module
+    component: null,
     isDynamic: true,
     types: m.types,
   }))
@@ -300,35 +305,16 @@ useEffect(() => {
             </div>
           </div>
         )}
-        {activeModule && accessibles.find(m => m.id === activeModule)?.isDynamic && (
-  <div style={{ padding:40, textAlign:"center", color:"#3E5470" }}>
-    <div style={{ fontSize:48, marginBottom:16 }}>
-      {accessibles.find(m => m.id === activeModule)?.icon}
-    </div>
-    <div style={{ fontSize:20, fontWeight:700, color:"#E2EAF2", marginBottom:8, fontFamily:"'Space Grotesk',sans-serif" }}>
-      {accessibles.find(m => m.id === activeModule)?.label}
-    </div>
-    <div style={{ fontSize:13, color:"#3E5470", marginBottom:24 }}>
-      Module en cours de developpement
-    </div>
-    <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
-      {accessibles.find(m => m.id === activeModule)?.types?.map(t => (
-        <div key={t.code} style={{ padding:"12px 20px", borderRadius:10, background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.2)" }}>
-          <div style={{ fontSize:12, fontWeight:700, color:"#06b6d4", marginBottom:8 }}>{t.nom}</div>
-          <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-            {t.evenements?.map(e => (
-              <div key={e.code} style={{ fontSize:11, color:"#475569", display:"flex", alignItems:"center", gap:6 }}>
-                <span style={{ color: e.peutInitier ? "#10b981" : "#334155" }}>●</span>
-                {e.nom}
-                {e.peutInitier && <span style={{ fontSize:9, color:"#10b981" }}>Initier</span>}
-                {e.peutValider && <span style={{ fontSize:9, color:"#06b6d4" }}>Valider</span>}
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
+{activeModule && accessibles.find(m => m.id === activeModule)?.isDynamic && (
+  <ModuleDynamique
+    module={accessibles.find(m => m.id === activeModule)}
+    composants={COMPOSANTS_EVENEMENTS_APP}
+    onEditOrder={(order) => {
+      setOrderToEdit(order);
+      setActive("saisie");
+    }}
+    onSaved={() => setOrderToEdit(null)}
+  />
 )}
         {ActiveComp && (
   activeModule === "mesordres"
