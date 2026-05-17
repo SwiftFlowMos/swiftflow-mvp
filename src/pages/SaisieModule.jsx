@@ -576,6 +576,9 @@ const handleSubmit = async () => {
         referenceClient: reference,
         charges:         charges,
         details:         details,
+        moduleCode:      'VIREMENTS',
+        typeCode:        'EMIS',
+        eventCode:       'SAISIE',
       }),
     });
 
