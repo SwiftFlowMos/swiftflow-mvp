@@ -879,8 +879,7 @@ const toggleStep = async (idx) => {
     <div>
       
         <h2 style={{ fontSize:16, fontWeight:700, color:"#E2EAF2", fontFamily:"'Space Grotesk',sans-serif" }}>Moteur Workflow</h2>
-      </div>
-      {/* Sélecteur de circuit */}
+     {/* Sélecteur de circuit */}
       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, padding:"12px 16px", background:"rgba(6,182,212,.05)", border:"1px solid rgba(6,182,212,.15)", borderRadius:10 }}>
         <div style={{ fontSize:11, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", flexShrink:0 }}>Circuit :</div>
         <select value={activeCircuit||"global"} onChange={e => setActiveCircuit(e.target.value)}
@@ -891,10 +890,17 @@ const toggleStep = async (idx) => {
           ))}
         </select>
       </div>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
-        <div></div>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
         <div style={{ display:"flex", gap:8 }}>
-        <div style={{ display:"flex", gap:8 }}>
+          <button style={{ padding:"7px 14px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer", background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.25)", color:"#06b6d4" }}>+ Ajouter etape</button>
+          <SaveBtn onClick={async () => {
+  for (const step of steps) {
+    await saveStep(step);
+  }
+}} saved={saved} />
+        </div>
+      </div>
+      <div style={{ display:"flex", gap:8 }}>
           <button style={{ padding:"7px 14px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer", background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.25)", color:"#06b6d4" }}>+ Ajouter etape</button>
           <SaveBtn onClick={async () => {
   for (const step of steps) {
