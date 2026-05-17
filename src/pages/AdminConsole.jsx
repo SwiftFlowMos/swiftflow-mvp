@@ -781,7 +781,7 @@ function StepModal({ step, onSave, onClose }) {
 // ─────────────────────────────────────────────────────────
 // 3. MOTEUR WORKFLOW
 // ─────────────────────────────────────────────────────────
-function MoteurWorkflow({ steps, setSteps }) {
+function MoteurWorkflow({ steps, setSteps, circuits, activeCircuit, setActiveCircuit }) {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -2027,26 +2027,36 @@ export default function AdminConsole({ onExit }) {
   const [bank, setBank] = useState(INIT_BANK);
   const [refs, setRefs] = useState(INIT_REFS);
   const [steps, setSteps] = useState([]);
+  const [circuits, setCircuits] = useState([]);
+  const [activeCircuit, setActiveCircuit] = useState("global");
   useEffect(() => {
 const loadSteps = async () => {
-    try {
-      console.log('Chargement steps, activeMenu:', activeMenu);
-      // Charger uniquement les étapes sans circuit (circuit global)
-      const res = await fetch(`${API_URL}/workflow/steps`, {
-        headers: { 'Authorization': 'Bearer ' + getToken() },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        // Filtrer uniquement les étapes sans circuitId (circuit global)
-        const globalSteps = data.filter((s: any) => !s.circuitId);
-        setSteps(globalSteps);
-      }
-    } catch(e) {
-      console.error('Erreur chargement workflow:', e);
+  try {
+    const headers = { 'Authorization': 'Bearer ' + getToken() };
+    
+    // Charger les circuits
+    const circRes = await fetch(`${API_URL}/modules/circuits`, { headers });
+    if (circRes.ok) {
+      const circData = await circRes.json();
+      setCircuits(circData);
     }
-  };
+
+    // Charger les étapes selon le circuit actif
+    const url = activeCircuit === "global" 
+      ? `${API_URL}/workflow/steps`
+      : `${API_URL}/workflow/steps?circuitId=${activeCircuit}`;
+    
+    const res = await fetch(url, { headers });
+    if (res.ok) {
+      const data = await res.json();
+      setSteps(data);
+    }
+  } catch(e) {
+    console.error('Erreur chargement workflow:', e);
+  }
+};
   loadSteps();
-}, [activeMenu]);
+}, [activeMenu, activeCircuit]);
   const [params, setParams] = useState(INIT_PARAMS);
 
   const activeM = MENUS.find(m=>m.id===activeMenu);
@@ -2120,12 +2130,23 @@ const loadSteps = async () => {
         <div style={{ padding:"24px 28px 60px", animation:"fadeUp .35s ease forwards" }}>
           {activeMenu==="identite"    && <IdentiteBank bank={bank} setBank={setBank} />}
           {activeMenu==="referentiels"&& <Referentiels refs={refs} setRefs={setRefs} />}
-          {activeMenu==="workflow"    && <MoteurWorkflow steps={steps} setSteps={setSteps} />}
+          {activeMenu==="workflow" && <MoteurWorkflow steps={steps} setSteps={setSteps} circuits={circuits} activeCircuit={activeCircuit} setActiveCircuit={setActiveCircuit} />}
           {activeMenu==="parametrage" && <ParamGeneral params={params} setParams={setParams} />}
           {activeMenu==="champs"      && <VisibiliteModule />}
           {activeMenu==="adaptateurs" && <SystemAdapters />}
           {activeMenu==="utilisateurs" && <ReferentielUsers />}
         </div>
+        {/* Sélecteur de circuit */}
+<div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:20, padding:"12px 16px", background:"rgba(6,182,212,.05)", border:"1px solid rgba(6,182,212,.15)", borderRadius:10 }}>
+  <div style={{ fontSize:11, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em" }}>Circuit :</div>
+  <select value={activeCircuit||"global"} onChange={e => setActiveCircuit(e.target.value)}
+    style={{ background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 12px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none", flex:1 }}>
+    <option value="global">Circuit Global</option>
+    {(circuits||[]).map(c => (
+      <option key={c.id} value={c.id}>{c.moduleCode} — {c.typeCode} — {c.evenementCode}</option>
+    ))}
+  </select>
+</div>
       </div>
     </div>
 
