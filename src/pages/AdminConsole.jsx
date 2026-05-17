@@ -2028,16 +2028,18 @@ export default function AdminConsole({ onExit }) {
   const [refs, setRefs] = useState(INIT_REFS);
   const [steps, setSteps] = useState([]);
   useEffect(() => {
-  const loadSteps = async () => {
+const loadSteps = async () => {
     try {
       console.log('Chargement steps, activeMenu:', activeMenu);
+      // Charger uniquement les étapes sans circuit (circuit global)
       const res = await fetch(`${API_URL}/workflow/steps`, {
         headers: { 'Authorization': 'Bearer ' + getToken() },
       });
       if (res.ok) {
         const data = await res.json();
-        console.log('Steps chargées:', data.map(s => s.nom + ':' + s.isActive));
-        setSteps(data);
+        // Filtrer uniquement les étapes sans circuitId (circuit global)
+        const globalSteps = data.filter((s: any) => !s.circuitId);
+        setSteps(globalSteps);
       }
     } catch(e) {
       console.error('Erreur chargement workflow:', e);
