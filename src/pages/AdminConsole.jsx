@@ -877,8 +877,23 @@ const toggleStep = async (idx) => {
   <div>
     {editing && <StepModal step={editing} onSave={saveEditedStep} onClose={() => setEditing(null)} />}
     <div>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+      
         <h2 style={{ fontSize:16, fontWeight:700, color:"#E2EAF2", fontFamily:"'Space Grotesk',sans-serif" }}>Moteur Workflow</h2>
+      </div>
+      {/* Sélecteur de circuit */}
+      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, padding:"12px 16px", background:"rgba(6,182,212,.05)", border:"1px solid rgba(6,182,212,.15)", borderRadius:10 }}>
+        <div style={{ fontSize:11, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", flexShrink:0 }}>Circuit :</div>
+        <select value={activeCircuit||"global"} onChange={e => setActiveCircuit(e.target.value)}
+          style={{ background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 12px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none", flex:1 }}>
+          <option value="global">Circuit Global</option>
+          {(circuits||[]).map(c => (
+            <option key={c.id} value={c.id}>{c.moduleCode} — {c.typeCode} — {c.evenementCode}</option>
+          ))}
+        </select>
+      </div>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+        <div></div>
+        <div style={{ display:"flex", gap:8 }}>
         <div style={{ display:"flex", gap:8 }}>
           <button style={{ padding:"7px 14px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer", background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.25)", color:"#06b6d4" }}>+ Ajouter etape</button>
           <SaveBtn onClick={async () => {
@@ -2136,17 +2151,7 @@ const loadSteps = async () => {
           {activeMenu==="adaptateurs" && <SystemAdapters />}
           {activeMenu==="utilisateurs" && <ReferentielUsers />}
         </div>
-        {/* Sélecteur de circuit */}
-<div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:20, padding:"12px 16px", background:"rgba(6,182,212,.05)", border:"1px solid rgba(6,182,212,.15)", borderRadius:10 }}>
-  <div style={{ fontSize:11, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em" }}>Circuit :</div>
-  <select value={activeCircuit||"global"} onChange={e => setActiveCircuit(e.target.value)}
-    style={{ background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"6px 12px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none", flex:1 }}>
-    <option value="global">Circuit Global</option>
-    {(circuits||[]).map(c => (
-      <option key={c.id} value={c.id}>{c.moduleCode} — {c.typeCode} — {c.evenementCode}</option>
-    ))}
-  </select>
-</div>
+
       </div>
     </div>
 
