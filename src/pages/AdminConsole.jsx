@@ -1508,9 +1508,14 @@ const [selectedModule, setSelectedModule] = useState("");
       {/* ── UTILISATEURS ── */}
       {sousMenu === "utilisateurs" && (
         <div>
-          <div style={{ fontSize:13, fontWeight:700, color:"#E2EAF2", marginBottom:16 }}>
-            Utilisateurs ({users.length})
-          </div>
+         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+  <div style={{ fontSize:13, fontWeight:700, color:"#E2EAF2" }}>Utilisateurs ({users.length})</div>
+  <button onClick={() => { setSelected({ login:"", nom:"", email:"", telephone:"", roleCode:"", agenceCode:"", password:"" }); setShowModal("user_new"); }}
+    style={{ padding:"6px 14px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer",
+      background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.2)", color:"#06b6d4" }}>
+    + Nouvel utilisateur
+  </button>
+</div>
           <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
             {users.map(u => (
               <div key={u.id} style={{ background:"rgba(8,15,28,.8)", border:"1px solid rgba(255,255,255,.06)", borderRadius:10, padding:"12px 16px",
@@ -1823,6 +1828,47 @@ const [selectedModule, setSelectedModule] = useState("");
 )}
 
       {/* ── MODALES ── */}
+
+      {/* Modale Nouvel Utilisateur */}
+{showModal === "user_new" && selected && (
+  <div style={{ position:"fixed", inset:0, zIndex:9000, background:"rgba(4,8,18,.88)", backdropFilter:"blur(10px)", display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+    <div style={{ width:"100%", maxWidth:500, background:"#0C1628", border:"1px solid rgba(6,182,212,.2)", borderRadius:16, overflow:"hidden" }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 20px", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
+        <div style={{ fontSize:14, fontWeight:700, color:"#E2EAF2" }}>Nouvel utilisateur</div>
+        <button onClick={() => setShowModal(null)} style={{ background:"none", border:"none", color:"#475569", cursor:"pointer", fontSize:20 }}>x</button>
+      </div>
+      <div style={{ padding:20 }}>
+        {inp("Login", selected.login, v => setSelected(p => ({...p, login:v})))}
+        {inp("Nom complet", selected.nom, v => setSelected(p => ({...p, nom:v})))}
+        {inp("Email", selected.email, v => setSelected(p => ({...p, email:v})))}
+        {inp("Telephone", selected.telephone, v => setSelected(p => ({...p, telephone:v})))}
+        {inp("Mot de passe", selected.password, v => setSelected(p => ({...p, password:v})), "password")}
+        {sel("Role", selected.roleCode, v => setSelected(p => ({...p, roleCode:v, role:v})),
+          roles.map(r => ({ value:r.code, label:r.nom })))}
+        {sel("Agence", selected.agenceCode, v => setSelected(p => ({...p, agenceCode:v})),
+          ["AG-CAS-01","AG-CAS-02","AG-RBA-01","AG-RBA-02","AG-MRK-01"].map(a => ({ value:a, label:a })))}
+      </div>
+      <div style={{ display:"flex", justifyContent:"flex-end", gap:10, padding:"14px 20px", borderTop:"1px solid rgba(255,255,255,.06)" }}>
+        <button onClick={() => setShowModal(null)} style={{ padding:"8px 18px", borderRadius:8, fontSize:12, cursor:"pointer", background:"rgba(30,41,59,.5)", border:"1px solid #1D3250", color:"#7A8BA0" }}>Annuler</button>
+        <button onClick={async () => {
+          if (!selected.login || !selected.nom || !selected.email || !selected.roleCode) {
+            showMsg("error", "Login, nom, email et role sont obligatoires");
+            return;
+          }
+          const res = await fetch(`${API_URL}/referentiel-users/users`, {
+            method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+getToken()},
+            body: JSON.stringify(selected)
+          });
+          if (res.ok) { showMsg("success","Utilisateur cree avec succes"); loadAll(); setShowModal(null); }
+          else {
+            const err = await res.json();
+            showMsg("error", err.message || "Erreur lors de la creation");
+          }
+        }} style={{ padding:"8px 20px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer", background:"linear-gradient(135deg,#0891b2,#0e7490)", border:"none", color:"#fff" }}>Creer</button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Modale Utilisateur */}
       {showModal === "user" && selected && (
