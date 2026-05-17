@@ -872,14 +872,20 @@ const toggleStep = async (idx) => {
   };
 
   
- 
-   return (
+ return (
   <div>
     {editing && <StepModal step={editing} onSave={saveEditedStep} onClose={() => setEditing(null)} />}
     <div>
-      
+      {/* Header */}
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
         <h2 style={{ fontSize:16, fontWeight:700, color:"#E2EAF2", fontFamily:"'Space Grotesk',sans-serif" }}>Moteur Workflow</h2>
-     {/* Sélecteur de circuit */}
+        <div style={{ display:"flex", gap:8 }}>
+          <button style={{ padding:"7px 14px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer", background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.25)", color:"#06b6d4" }}>+ Ajouter etape</button>
+          <SaveBtn onClick={async () => { for (const step of steps) { await saveStep(step); } }} saved={saved} />
+        </div>
+      </div>
+
+      {/* Sélecteur de circuit */}
       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16, padding:"12px 16px", background:"rgba(6,182,212,.05)", border:"1px solid rgba(6,182,212,.15)", borderRadius:10 }}>
         <div style={{ fontSize:11, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", flexShrink:0 }}>Circuit :</div>
         <select value={activeCircuit||"global"} onChange={e => setActiveCircuit(e.target.value)}
@@ -890,25 +896,6 @@ const toggleStep = async (idx) => {
           ))}
         </select>
       </div>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
-        <div style={{ display:"flex", gap:8 }}>
-          <button style={{ padding:"7px 14px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer", background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.25)", color:"#06b6d4" }}>+ Ajouter etape</button>
-          <SaveBtn onClick={async () => {
-  for (const step of steps) {
-    await saveStep(step);
-  }
-}} saved={saved} />
-        </div>
-      </div>
-      <div style={{ display:"flex", gap:8 }}>
-          <button style={{ padding:"7px 14px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer", background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.25)", color:"#06b6d4" }}>+ Ajouter etape</button>
-          <SaveBtn onClick={async () => {
-  for (const step of steps) {
-    await saveStep(step);
-  }
-}} saved={saved} />
-        </div>
-      </div>
 
       {/* Pipeline */}
       <div style={{ display:"flex", alignItems:"center", flexWrap:"wrap", gap:0, padding:"10px 14px", background:"rgba(8,15,28,.7)", border:"1px solid rgba(255,255,255,.06)", borderRadius:10, marginBottom:16 }}>
@@ -916,79 +903,7 @@ const toggleStep = async (idx) => {
         <span style={{ fontSize:10, padding:"3px 9px", borderRadius:20, background:"rgba(16,185,129,.1)", border:"1px solid rgba(16,185,129,.25)", color:"#10b981", fontWeight:700 }}>SAISIE</span>
         {steps.filter(s=>s.isActive||s.actif).map((s,i) => (
           <span key={s.id} style={{ display:"flex", alignItems:"center" }}>
-            <span style={{ width:16, height:1, background:"rgba(30,58,138,.4)", display:"inline-block" }} />
-            <span style={{ fontSize:10, padding:"3px 9px", borderRadius:20, background:"rgba(6,182,212,.1)", border:"1px solid rgba(6,182,212,.25)", color:"#06b6d4", fontWeight:700 }}>{s.nom}</span>
-          </span>
-        ))}
-        <span style={{ display:"flex", alignItems:"center" }}>
-          <span style={{ width:16, height:1, background:"rgba(30,58,138,.4)", display:"inline-block" }} />
-          <span style={{ fontSize:10, padding:"3px 9px", borderRadius:20, background:"rgba(6,182,212,.1)", border:"1px solid rgba(6,182,212,.25)", color:"#06b6d4", fontWeight:700 }}>INJECTION BO</span>
-        </span>
-      </div>
-
-<div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-        {steps.map((step, idx) => (
-          <Card key={step.id}
-            draggable
-            onDragStart={e => e.dataTransfer.setData("idx", idx)}
-            onDragOver={e => e.preventDefault()}
-            onDrop={async e => {
-              e.preventDefault();
-              const from = parseInt(e.dataTransfer.getData("idx"));
-              const to = idx;
-              if (from === to) return;
-              const reordered = [...steps];
-              const [moved] = reordered.splice(from, 1);
-              reordered.splice(to, 0, moved);
-              const updated = reordered.map((s, i) => ({ ...s, ordre: i + 1 }));
-              setSteps(updated);
-              // Sauvegarder le nouvel ordre
-              for (const s of updated) {
-                await fetch(`${API_URL}/workflow/steps/${s.id}`, {
-                  method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
-                  body: JSON.stringify({ ordre: s.ordre }),
-                });
-              }
-            }}
-            style={{ opacity:(step.isActive||step.actif)?1:.55, borderLeft:"3px solid "+((step.isActive||step.actif)?"#06b6d4":"#1D3250"), cursor:"grab" }}>
-            <div style={{ display:"grid", gridTemplateColumns:"auto auto 1fr auto", gap:14, alignItems:"start" }}>
-              <div style={{ fontSize:16, color:"#3E5470", cursor:"grab", paddingTop:4 }}>⠿</div>
-              <div style={{ width:28, height:28, borderRadius:"50%", background:"rgba(6,182,212,.15)", border:"1.5px solid rgba(6,182,212,.35)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:800, color:"#06b6d4", flexShrink:0 }}>{step.ordre}</div>
-              <div>
-                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-                  <span style={{ fontSize:13, fontWeight:700, color:"#E2EAF2" }}>{step.nom}</span>
-                  <span style={{ fontSize:10, padding:"2px 8px", borderRadius:20, background:"rgba(6,182,212,.1)", border:"1px solid rgba(6,182,212,.2)", color:"#06b6d4" }}>{TYPES[step.type]}</span>
-                  {step.role && <span style={{ fontSize:10, color:"#3E5470" }}>👤 {step.role}</span>}
-                  {step.conditions?.montantMin && <span style={{ fontSize:10, color:"#f59e0b" }}>Min : {step.conditions.montantMin.toLocaleString("fr-FR")}</span>}
-                </div>
-                {/* Routage */}
-                <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-                  {["POSITIF","NEGATIF","ALERTE"].map(res => (
-                    <div key={res} style={{ display:"flex", alignItems:"center", gap:6 }}>
-                      <span style={{ fontSize:10, fontWeight:700, color:res==="POSITIF"?"#10b981":res==="NEGATIF"?"#ef4444":"#f59e0b" }}>{res}</span>
-                      <span style={{ fontSize:10, color:"#3E5470" }}>→</span>
-                      <select value={step.routing?.[res]||"NEXT"} onChange={e=>setRouting(idx,res,e.target.value)}
-                        style={{ background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:6, padding:"3px 8px", fontSize:11, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }}>
-                        {ROUTING_OPTS.map(o=><option key={o} value={o}>{o}</option>)}
-                      </select>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-  <button onClick={() => setEditing(step)} style={{ padding:"4px 12px", borderRadius:7, fontSize:11, fontWeight:700, cursor:"pointer", background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.2)", color:"#06b6d4" }}>
-    Configurer
-  </button>
-  <Toggle checked={step.isActive||step.actif} onChange={()=>toggleStep(idx)} />
-</div>
-            </div>
-          </Card>
-        ))}
-     </div>
-    </div>
-  </div>
-  );
+            <span style={{ width:16, height:1, background:"rgba(30,58,138,.4)", displa
 }
 
 // ─────────────────────────────────────────────────────────
