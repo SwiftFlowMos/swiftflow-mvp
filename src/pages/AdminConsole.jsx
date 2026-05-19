@@ -879,7 +879,29 @@ const toggleStep = async (idx) => {
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
         <h2 style={{ fontSize:16, fontWeight:700, color:"#E2EAF2", fontFamily:"'Space Grotesk',sans-serif" }}>Moteur Workflow</h2>
         <div style={{ display:"flex", gap:8 }}>
-          <button style={{ padding:"7px 14px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer", background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.25)", color:"#06b6d4" }}>+ Ajouter etape</button>
+          <button onClick={async () => {
+  const nom = prompt("Nom de la nouvelle étape :");
+  if (!nom) return;
+  const type = prompt("Type (AUTO ou MANUEL) :", "MANUEL");
+  const res = await fetch(`${API_URL}/workflow/steps`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+    body: JSON.stringify({
+      nom,
+      type: type || 'MANUEL',
+      ordre: steps.length + 1,
+      circuitId: activeCircuit === "global" ? null : activeCircuit,
+    }),
+  });
+  if (res.ok) {
+    const newStep = await res.json();
+    setSteps(prev => [...prev, newStep]);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  } else {
+    alert('Erreur lors de la création de l\'étape');
+  }
+}} style={{ padding:"7px 14px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer", background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.25)", color:"#06b6d4" }}>+ Ajouter etape</button>
           <SaveBtn onClick={async () => { for (const step of steps) { await saveStep(step); } }} saved={saved} />
         </div>
       </div>
