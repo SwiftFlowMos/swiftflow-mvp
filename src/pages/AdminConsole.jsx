@@ -784,6 +784,8 @@ function StepModal({ step, onSave, onClose }) {
 function MoteurWorkflow({ steps, setSteps, circuits, activeCircuit, setActiveCircuit }) {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showNewStep, setShowNewStep] = useState(false);
+  const [newStep, setNewStep] = useState({ nom:"", type:"MANUEL", role:"", systemeTiers:"" });
 
   
   // Sauvegarder une étape
@@ -874,6 +876,77 @@ const toggleStep = async (idx) => {
   return (
   <div>
     {editing && <StepModal step={editing} onSave={saveEditedStep} onClose={() => setEditing(null)} />}
+
+    {showNewStep && (
+  <div style={{ position:"fixed", inset:0, zIndex:9000, background:"rgba(4,8,18,.88)", backdropFilter:"blur(10px)", display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+    <div style={{ width:"100%", maxWidth:480, background:"#0C1628", border:"1px solid rgba(6,182,212,.2)", borderRadius:16, overflow:"hidden" }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 20px", borderBottom:"1px solid rgba(255,255,255,.06)" }}>
+        <div style={{ fontSize:14, fontWeight:700, color:"#E2EAF2" }}>Nouvelle étape</div>
+        <button onClick={() => setShowNewStep(false)} style={{ background:"none", border:"none", color:"#475569", cursor:"pointer", fontSize:20 }}>x</button>
+      </div>
+      <div style={{ padding:20 }}>
+        <div style={{ marginBottom:12 }}>
+          <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Nom de l'étape</div>
+          <input value={newStep.nom} onChange={e => setNewStep(p => ({...p, nom:e.target.value}))}
+            style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"7px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }} />
+        </div>
+        <div style={{ marginBottom:12 }}>
+          <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Type</div>
+          <select value={newStep.type} onChange={e => setNewStep(p => ({...p, type:e.target.value}))}
+            style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"7px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }}>
+            <option value="MANUEL">👤 Manuel</option>
+            <option value="AUTO">🤖 Auto</option>
+            <option value="SEMI_AUTO">⚡ Semi-auto</option>
+          </select>
+        </div>
+        {newStep.type === "MANUEL" && (
+          <div style={{ marginBottom:12 }}>
+            <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Rôle requis</div>
+            <select value={newStep.role} onChange={e => setNewStep(p => ({...p, role:e.target.value}))}
+              style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"7px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }}>
+              <option value="">-- Sélectionner --</option>
+              {["CONFORMITE","VALIDEUR_N1","VALIDEUR_N2","REGLEMENTAIRE","DIRECTION"].map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+        )}
+        {(newStep.type === "AUTO" || newStep.type === "SEMI_AUTO") && (
+          <div style={{ marginBottom:12 }}>
+            <div style={{ fontSize:9, color:"#3E5470", textTransform:"uppercase", letterSpacing:".1em", marginBottom:4 }}>Système tiers</div>
+            <select value={newStep.systemeTiers} onChange={e => setNewStep(p => ({...p, systemeTiers:e.target.value}))}
+              style={{ width:"100%", background:"rgba(10,18,32,.8)", border:"1px solid #1D3250", borderRadius:7, padding:"7px 10px", fontSize:12, color:"#C8D8EA", fontFamily:"monospace", outline:"none" }}>
+              <option value="">-- Sélectionner --</option>
+              {["PROVISION","AML","FIRCOSOFT","SWIFT","MUREX","FLEXCUBE","AMPLITUDE","FTI"].map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+        )}
+      </div>
+      <div style={{ display:"flex", justifyContent:"flex-end", gap:10, padding:"14px 20px", borderTop:"1px solid rgba(255,255,255,.06)" }}>
+        <button onClick={() => setShowNewStep(false)} style={{ padding:"8px 18px", borderRadius:8, fontSize:12, cursor:"pointer", background:"rgba(30,41,59,.5)", border:"1px solid #1D3250", color:"#7A8BA0" }}>Annuler</button>
+        <button onClick={async () => {
+          if (!newStep.nom) { alert('Le nom est obligatoire'); return; }
+          const res = await fetch(`${API_URL}/workflow/steps`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+            body: JSON.stringify({
+              ...newStep,
+              ordre: steps.length + 1,
+              circuitId: activeCircuit === "global" ? null : activeCircuit,
+            }),
+          });
+          if (res.ok) {
+            const created = await res.json();
+            setSteps(prev => [...prev, created]);
+            setShowNewStep(false);
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2000);
+          } else {
+            alert('Erreur lors de la création');
+          }
+        }} style={{ padding:"8px 20px", borderRadius:8, fontSize:12, fontWeight:700, cursor:"pointer", background:"linear-gradient(135deg,#0891b2,#0e7490)", border:"none", color:"#fff" }}>Créer</button>
+      </div>
+    </div>
+  </div>
+)}
     <div>
       {/* Header */}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
@@ -1104,7 +1177,10 @@ function ParamGeneral({ params, setParams }) {
         <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <p style={{ fontSize:11, color:"#3E5470" }}>Gerez les jours feries et jours ouvrables par pays. Impact direct sur les dates de valeur dans l'ecran de saisie.</p>
-            <button style={{ padding:"7px 14px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer", background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.25)", color:"#06b6d4" }}>+ Ajouter un pays</button>
+            <button onClick={() => { setNewStep({ nom:"", type:"MANUEL", role:"", systemeTiers:"" }); setShowNewStep(true); }}
+  style={{ padding:"7px 14px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer", background:"rgba(6,182,212,.08)", border:"1px solid rgba(6,182,212,.25)", color:"#06b6d4" }}>
+  + Ajouter etape
+</button>
           </div>
 
           {/* Ajout jour férié */}
