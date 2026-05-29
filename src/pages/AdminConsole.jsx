@@ -1045,6 +1045,8 @@ const toggleStep = async (idx) => {
       </div>
     </div>
   </div>
+    </div>
+  </div>
 );
 }
 
