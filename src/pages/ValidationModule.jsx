@@ -96,21 +96,26 @@ function OrderModal({ order, onClose, onAction }) {
   const [delegate, setDelegate] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = () => {
-    if (!comment.trim() && action !== "APPROUVER") return;
-    setSubmitted(true);
-    setTimeout(() => {
-      onAction(order.realId || order.id, action, comment, delegate);
-      onClose();
-    }, 800);
-  };
+ const handleSubmit = () => {
+  if (!comment.trim() && action !== "APPROUVER") return;
+  if (action === "FORCER" && !comment.trim()) return;
+  setSubmitted(true);
+  setTimeout(() => {
+    onAction(order.realId || order.id, action, comment, delegate);
+    onClose();
+  }, 800);
+};
 
-  const actionBtns = [
-    { key: "APPROUVER", label: "Approuver",  icon: "✓", color: "#10b981", bg: "rgba(16,185,129,.12)", border: "rgba(16,185,129,.3)" },
-    { key: "RETOURNER", label: "Retourner",  icon: "↩", color: "#a78bfa", bg: "rgba(167,139,250,.1)", border: "rgba(167,139,250,.3)" },
-    { key: "REJETER",   label: "Rejeter",    icon: "✕", color: "#ef4444", bg: "rgba(239,68,68,.1)",   border: "rgba(239,68,68,.3)" },
-    { key: "DÉLÉGUER",  label: "Déléguer",   icon: "👤", color: "#06b6d4", bg: "rgba(6,182,212,.1)",  border: "rgba(6,182,212,.3)" },
-  ];
+ const canForce = payment.status === 'BLOCKED' && user?.role && 
+  ['DIRECTION', 'ADMIN'].includes(user.role);
+
+const actionBtns = [
+  { key: "APPROUVER", label: "Approuver",  icon: "✓",  color: "#10b981", bg: "rgba(16,185,129,.12)", border: "rgba(16,185,129,.3)" },
+  { key: "RETOURNER", label: "Retourner",  icon: "↩",  color: "#a78bfa", bg: "rgba(167,139,250,.1)", border: "rgba(167,139,250,.3)" },
+  { key: "REJETER",   label: "Rejeter",    icon: "✕",  color: "#ef4444", bg: "rgba(239,68,68,.1)",   border: "rgba(239,68,68,.3)" },
+  { key: "DÉLÉGUER",  label: "Déléguer",   icon: "👤", color: "#06b6d4", bg: "rgba(6,182,212,.1)",   border: "rgba(6,182,212,.3)" },
+  ...(canForce ? [{ key: "FORCER", label: "Forcer", icon: "⚡", color: "#f59e0b", bg: "rgba(245,158,11,.1)", border: "rgba(245,158,11,.3)" }] : []),
+];
 
   return (
     <div style={{
@@ -339,19 +344,20 @@ function OrderModal({ order, onClose, onAction }) {
               )}
 
               {action && (
-                <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontSize: 10, color: "#475569", marginBottom: 6, textTransform: "uppercase", letterSpacing: ".1em" }}>
-                    Commentaire {action !== "APPROUVER" ? <span style={{ color: "#f59e0b" }}>*</span> : "(optionnel)"}
-                  </div>
-                  <textarea
-                    value={comment}
-                    onChange={e => setComment(e.target.value)}
-                    placeholder={
-                      action === "APPROUVER" ? "Commentaire de validation (optionnel)..." :
-                      action === "REJETER" ? "Motif du rejet (obligatoire)..." :
-                      action === "RETOURNER" ? "Préciser les corrections requises..." :
-                      "Instructions pour le délégataire..."
-                    }
+  <div style={{ marginBottom: 12 }}>
+    <div style={{ fontSize: 10, color: "#475569", marginBottom: 6, textTransform: "uppercase", letterSpacing: ".1em" }}>
+      {action === "FORCER" ? "Motif du forçage" : "Commentaire"} {action !== "APPROUVER" ? <span style={{ color: "#f59e0b" }}>*</span> : "(optionnel)"}
+    </div>
+    <textarea
+      value={comment}
+      onChange={e => setComment(e.target.value)}
+      placeholder={
+        action === "APPROUVER" ? "Commentaire de validation (optionnel)..." :
+        action === "REJETER"   ? "Motif du rejet (obligatoire)..." :
+        action === "RETOURNER" ? "Préciser les corrections requises..." :
+        action === "FORCER"    ? "Motif du forçage (obligatoire)..." :
+        "Instructions pour le délégataire..."
+      }
                     rows={3}
                     style={{
                       width: "100%", background: "#0b1425", border: "1px solid #1e3a5f", borderRadius: 8,
@@ -482,30 +488,41 @@ export default function ValidationDashboard() {
 
   useEffect(() => { loadOrders(); }, []);
 
-  const handleAction = async (id, action, comment) => {
-   const realId = id;
-    const token = localStorage.getItem('sf_token');
-    const endpoint = action === 'APPROUVER' ? 'approve' : action === 'REJETER' ? 'reject' : 'return';
-    try {
-      const res = await fetch(`https://swiftflow-backend.onrender.com/payments/${realId}/${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ comment }),
-      });
-      if (res.ok) {
-        await loadOrders();
-        setSelected(null);
-      } else {
-        const data = await res.json();
-        alert('Erreur : ' + (data.message || 'Action impossible'));
-      }
-    } catch(e) {
-      alert('Erreur de connexion au serveur');
+const handleAction = async (id, action, comment) => {
+  const realId = id;
+  const token = localStorage.getItem('sf_token');
+  
+  let endpoint;
+  let body = { comment };
+  
+  if (action === 'APPROUVER')  endpoint = 'approve';
+  else if (action === 'REJETER')   endpoint = 'reject';
+  else if (action === 'RETOURNER') endpoint = 'return';
+  else if (action === 'FORCER') {
+    endpoint = 'force';
+    body = { motif: comment };
+  } else endpoint = 'return';
+
+  try {
+    const res = await fetch(`${API_URL}/payments/${realId}/${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+    if (res.ok) {
+      await loadOrders();
+      setSelected(null);
+    } else {
+      const data = await res.json();
+      alert('Erreur : ' + (data.message || 'Action impossible'));
     }
-  };
+  } catch(e) {
+    alert('Erreur de connexion au serveur');
+  }
+};
 
   const PENDING_STATUSES = ["EN_ATTENTE_N1", "EN_ATTENTE_N2", "PENDING_CONFORMITE", "PENDING_VALIDEUR_N1", "PENDING_VALIDEUR_N2", "PENDING_VALIDATION", "PENDING_REGLEMENTAIRE"];
 const TREATED_STATUSES = ["APPROUVÉ", "REJETÉ", "RETOURNÉ", "APPROVED", "REJECTED", "RETURNED"];
