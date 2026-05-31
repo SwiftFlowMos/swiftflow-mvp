@@ -106,7 +106,7 @@ function OrderModal({ order, onClose, onAction }) {
   }, 800);
 };
 
- const canForce = payment.status === 'BLOCKED' && user?.role && 
+const canForce = order?.status === 'BLOCKED' && user?.role && 
   ['DIRECTION', 'ADMIN'].includes(user.role);
 
 const actionBtns = [
