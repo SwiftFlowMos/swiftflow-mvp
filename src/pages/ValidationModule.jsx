@@ -106,8 +106,9 @@ function OrderModal({ order, onClose, onAction }) {
   }, 800);
 };
 
-const canForce = order?.status === 'BLOCKED' && user?.role && 
-  ['DIRECTION', 'ADMIN'].includes(user.role);
+const currentUser = JSON.parse(localStorage.getItem('sf_user') || '{}');
+const canForce = order?.status === 'BLOCKED' && 
+  ['DIRECTION', 'ADMIN'].includes(currentUser?.role);
 
 const actionBtns = [
   { key: "APPROUVER", label: "Approuver",  icon: "✓",  color: "#10b981", bg: "rgba(16,185,129,.12)", border: "rgba(16,185,129,.3)" },
