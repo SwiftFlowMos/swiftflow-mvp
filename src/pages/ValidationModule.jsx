@@ -316,7 +316,7 @@ const actionBtns = [
               <div style={{ fontSize: 11, color: "#475569", textTransform: "uppercase", letterSpacing: ".15em", marginBottom: 14 }}>Votre décision</div>
 
               {/* Boutons action */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8, marginBottom: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: `repeat(${actionBtns.length},1fr)`, gap: 8, marginBottom: 16 }}>
                 {actionBtns.map(btn => (
                   <button key={btn.key} onClick={() => setAction(btn.key)} style={{
                     padding: "10px 0", borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: "pointer",
