@@ -377,27 +377,44 @@ const actionBtns = [
                 </div>
               )}
 
-              {action && (
-                <button
-                  onClick={handleSubmit}
-                  disabled={action !== "APPROUVER" && !comment.trim()}
-                  style={{
-                    width: "100%", padding: "12px", borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: "pointer",
-                    background: action === "APPROUVER" ? "linear-gradient(135deg,#059669,#047857)"
-                      : action === "REJETER" ? "linear-gradient(135deg,#dc2626,#b91c1c)"
-                      : action === "RETOURNER" ? "linear-gradient(135deg,#7c3aed,#6d28d9)"
-                      : "linear-gradient(135deg,#0891b2,#0e7490)",
-                    border: "none", color: "#fff", letterSpacing: ".5px",
-                    opacity: (action !== "APPROUVER" && !comment.trim()) ? .4 : 1,
-                    transition: "all .2s",
-                  }}
-                >
-                  {action === "APPROUVER" ? "✓ Confirmer l'approbation"
-                    : action === "REJETER" ? "✕ Confirmer le rejet"
-                    : action === "RETOURNER" ? "↩ Retourner au saisisseur"
-                    : `👤 Déléguer à ${delegate || "..."}`}
-                </button>
-              )}
+            {action && action !== "DÉLÉGUER" && (
+  <button
+    onClick={handleSubmit}
+    disabled={action !== "APPROUVER" && !comment.trim()}
+    style={{
+      width: "100%", padding: "12px", borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: "pointer",
+      background: action === "APPROUVER" ? "linear-gradient(135deg,#059669,#047857)"
+        : action === "REJETER"   ? "linear-gradient(135deg,#dc2626,#b91c1c)"
+        : action === "RETOURNER" ? "linear-gradient(135deg,#7c3aed,#6d28d9)"
+        : action === "FORCER"    ? "linear-gradient(135deg,#d97706,#b45309)"
+        : "linear-gradient(135deg,#0891b2,#0e7490)",
+      border: "none", color: "#fff", letterSpacing: ".5px",
+      opacity: (action !== "APPROUVER" && !comment.trim()) ? .4 : 1,
+      transition: "all .2s",
+    }}
+  >
+    {action === "APPROUVER" ? "✓ Confirmer l'approbation"
+      : action === "REJETER"   ? "✕ Confirmer le rejet"
+      : action === "RETOURNER" ? "↩ Retourner au saisisseur"
+      : action === "FORCER"    ? "⚡ Confirmer le forçage"
+      : `👤 Déléguer à ${delegate || "..."}`}
+  </button>
+)}
+{action === "DÉLÉGUER" && (
+  <button
+    onClick={handleSubmit}
+    disabled={!delegate}
+    style={{
+      width: "100%", padding: "12px", borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: "pointer",
+      background: "linear-gradient(135deg,#0891b2,#0e7490)",
+      border: "none", color: "#fff", letterSpacing: ".5px",
+      opacity: !delegate ? .4 : 1,
+      transition: "all .2s",
+    }}
+  >
+    {`👤 Déléguer à ${delegate || "..."}`}
+  </button>
+)}
             </div>
           )}
 
