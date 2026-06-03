@@ -45,7 +45,7 @@ const canAct = (o) => {
   ];
   const currentUser = JSON.parse(localStorage.getItem('sf_user') || '{}');
   const canForceThis = o.status === 'BLOCKED' && 
-    ['DIRECTION', 'ADMIN'].includes(currentUser?.role);
+    forceHabs.some(fh => fh.roleCode === currentUser?.role);
   return pendingStatuses.includes(o.status) || canForceThis;
 };
 
@@ -441,69 +441,75 @@ export default function ValidationDashboard() {
   const [selected, setSelected] = useState(null);
   const [filter, setFilter] = useState("EN_ATTENTE");
   const [search, setSearch] = useState("");
+  const [forceHabs, setForceHabs] = useState([]);
+  
 
- const loadOrders = async () => {
+const loadOrders = async () => {
     try {
       setLoading(true);
       const token = getToken();
-      const res = await fetch(`${API_URL}/payments`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
+      const [res, forceRes] = await Promise.all([
+        fetch(`${API_URL}/payments`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        }),
+        fetch(`${API_URL}/referentiel-users/force-habilitations`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        }),
+      ]);
+
+      if (forceRes.ok) {
+        const forceData = await forceRes.json();
+        setForceHabs(forceData);
+      }
+
       if (res.ok) {
         const data = await res.json();
-       setOrders(data.map(p => ({
-  id:            p.reference || p.id,
-  realId:        p.id,
-  createdAt:     p.createdAt ? new Date(p.createdAt).toLocaleString('fr-FR') : '',
-  valueDate:     p.valueDate ? new Date(p.valueDate).toLocaleDateString('fr-FR') : '',
-  amount:        p.amount || 0,
-  currency:      p.currency || 'MAD',
-  symbol:        p.currency === 'EUR' ? '€' : p.currency === 'USD' ? '$' : 'MAD',
-  // Donneur d'ordre
-  agenceCode:    p.agenceCode || '',
-  clientRef:     p.clientRef || '',
-  clientNom:     p.clientNom || '',
-  compteNum:     p.compteNum || '',
-  compteDevise:  p.compteDevise || '',
-  plafond:       p.plafond || '',
-  // Nature du transfert
-  categorie:     p.categorie || '',
-  typeTransfert: p.typeTransfert || '',
-  domRef:        p.domRef || '',
-  domBanque:     p.domBanque || '',
-  // Montant & Devise
-  typeCours:     p.typeCours || '',
-  coursChange:   p.coursChange || '',
-  motif:         p.motif || '',
-  codeMotif:     p.codeMotif || '',
-  // Bénéficiaire
-  beneName:      p.beneName || '',
-  beneAdresse:   p.beneAdresse || {},
-  beneCountry:   p.beneCountry || '',
-  beneIBAN:      p.beneIBAN || '',
-  beneBIC:       p.beneBIC || '',
-  beneBankName:  p.beneBankName || '',
-  // Détails paiement
-  reference:     p.referenceClient || '',
-  charges:       p.charges || 'SHA',
-  correspondentBIC: p.correspondentBIC || '',
-  incoterm:      p.incoterm || '',
-  details:       p.details || '',
-  // Contrôles
-  status:        p.status || 'PENDING',
-  amlStatus:     p.amlStatus || 'PENDING',
-  amlMessage:    p.amlMessage || '',
-  currentStep:   p.currentStep || 0,
-  // Méta
-  createdBy:     p.createdBy || {},
-  auditLogs:     (p.auditLogs || []).map(a => ({
-    date:    a.createdAt ? new Date(a.createdAt).toLocaleString('fr-FR') : '',
-    actor:   a.actorName || '',
-    action:  a.action || '',
-    comment: a.comment || '',
-    status:  a.newStatus || '',
-  })),
-})));
+        setOrders(data.map(p => ({
+          id:            p.reference || p.id,
+          realId:        p.id,
+          createdAt:     p.createdAt ? new Date(p.createdAt).toLocaleString('fr-FR') : '',
+          valueDate:     p.valueDate ? new Date(p.valueDate).toLocaleDateString('fr-FR') : '',
+          amount:        p.amount || 0,
+          currency:      p.currency || 'MAD',
+          symbol:        p.currency === 'EUR' ? '€' : p.currency === 'USD' ? '$' : 'MAD',
+          agenceCode:    p.agenceCode || '',
+          clientRef:     p.clientRef || '',
+          clientNom:     p.clientNom || '',
+          compteNum:     p.compteNum || '',
+          compteDevise:  p.compteDevise || '',
+          plafond:       p.plafond || '',
+          categorie:     p.categorie || '',
+          typeTransfert: p.typeTransfert || '',
+          domRef:        p.domRef || '',
+          domBanque:     p.domBanque || '',
+          typeCours:     p.typeCours || '',
+          coursChange:   p.coursChange || '',
+          motif:         p.motif || '',
+          codeMotif:     p.codeMotif || '',
+          beneName:      p.beneName || '',
+          beneAdresse:   p.beneAdresse || {},
+          beneCountry:   p.beneCountry || '',
+          beneIBAN:      p.beneIBAN || '',
+          beneBIC:       p.beneBIC || '',
+          beneBankName:  p.beneBankName || '',
+          reference:     p.referenceClient || '',
+          charges:       p.charges || 'SHA',
+          correspondentBIC: p.correspondentBIC || '',
+          incoterm:      p.incoterm || '',
+          details:       p.details || '',
+          status:        p.status || 'PENDING',
+          amlStatus:     p.amlStatus || 'PENDING',
+          amlMessage:    p.amlMessage || '',
+          currentStep:   p.currentStep || 0,
+          createdBy:     p.createdBy || {},
+          auditLogs:     (p.auditLogs || []).map(a => ({
+            date:    a.createdAt ? new Date(a.createdAt).toLocaleString('fr-FR') : '',
+            actor:   a.actorName || '',
+            action:  a.action || '',
+            comment: a.comment || '',
+            status:  a.newStatus || '',
+          })),
+        })));
       }
     } catch(e) {
       console.error('Erreur chargement ordres:', e);
